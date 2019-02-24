@@ -101,6 +101,10 @@ class FlutterYoutubeView(
     override fun onMethodCall(methodCall: MethodCall, result: MethodChannel.Result) {
         when (methodCall.method) {
             "loadOrCueVideo" -> loadOrCueVideo(methodCall, result)
+            "play" -> play(result)
+            "pause" -> pause(result)
+            "seekTo" -> seekTo(methodCall, result)
+            "setVolume" -> setVolume(methodCall, result)
             else -> result.notImplemented()
         }
     }
@@ -156,8 +160,35 @@ class FlutterYoutubeView(
     }
 
     private fun loadOrCueVideo(methodCall: MethodCall, result: MethodChannel.Result) {
-        val youtubeId = methodCall.arguments as String
-        youtubePlayer?.loadOrCueVideo(this@FlutterYoutubeView, youtubeId, 0f)
+        val params = methodCall.arguments as HashMap<String, *>
+        val videoId = params["videoId"] as String
+        val startSeconds = params["startSeconds"] as? Float ?: 0f
+        youtubePlayer?.loadOrCueVideo(this@FlutterYoutubeView, videoId, startSeconds)
+        result.success(null)
+    }
+
+    private fun pause(result: MethodChannel.Result) {
+        youtubePlayer?.pause()
+        result.success(null)
+    }
+
+    private fun play(result: MethodChannel.Result) {
+        youtubePlayer?.play()
+        result.success(null)
+    }
+
+    private fun seekTo(methodCall: MethodCall, result: MethodChannel.Result) {
+        val time = methodCall.arguments as Float
+        youtubePlayer?.seekTo(time)
+        result.success(null)
+    }
+
+    /**
+     * @param volumePercent Integer between 0 and 100
+     */
+    private fun setVolume(methodCall: MethodCall, result: MethodChannel.Result) {
+        val volumePercent = methodCall.arguments as Int
+        youtubePlayer?.setVolume(volumePercent)
         result.success(null)
     }
 

@@ -67,9 +67,32 @@ class FlutterYoutubeViewController {
     }
   }
 
-  Future<void> loadOrCueVideo(String videoId) async {
+  Future<void> loadOrCueVideo(String videoId, double startSeconds) async {
     assert(videoId != null);
-    return _channel.invokeMethod('loadOrCueVideo', videoId);
+    var params = <String, dynamic>{
+      "videoId": videoId,
+      "startSeconds": startSeconds
+    };
+    await _channel.invokeMethod('loadOrCueVideo', params);
+  }
+
+  Future<void> play() async {
+    await _channel.invokeMethod('play', null);
+  }
+
+  Future<void> pause() async {
+    await _channel.invokeMethod('pause', null);
+  }
+
+  Future<void> seekTo(double time) async {
+    await _channel.invokeMethod('seekTo', time);
+  }
+
+  /**
+   * @param volumePercent Integer between 0 and 100
+   */
+  Future<void> setVolume(int volumePercent) async {
+    await _channel.invokeMethod('setVolume', volumePercent);
   }
 
   Future<dynamic> handleEvent(MethodCall call) async {

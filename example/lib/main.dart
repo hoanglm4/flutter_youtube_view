@@ -23,12 +23,24 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _loadOrCueVideo() {
-    _controller.loadOrCueVideo('gcj2RUWQZ60');
+    _controller.loadOrCueVideo('gcj2RUWQZ60', 0.0);
   }
 
-  void _play() {}
+  void _play() {
+    _controller.play();
+  }
 
-  void _pause() {}
+  void _pause() {
+    _controller.pause();
+  }
+
+  void _seekTo(double time) {
+    _controller.seekTo(time);
+  }
+
+  void _setVolume(int volumePercent) {
+    _controller.setVolume(volumePercent);
+  }
 
   @override
   Widget build(BuildContext context) {
