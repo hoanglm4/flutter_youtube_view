@@ -38,6 +38,7 @@ class _MyAppState extends State<MyApp> {
               Container(
                   child: FlutterYoutubeView(
                     onViewCreated: _onYoutubeCreated,
+                    listener: PlayerEventListenerImpl(),
                   )),
               RaisedButton(
                 onPressed: _playVideo,
@@ -46,5 +47,32 @@ class _MyAppState extends State<MyApp> {
             ],
           )),
     );
+  }
+}
+
+class PlayerEventListenerImpl extends YouTubePlayerListener {
+  @override
+  void onCurrentSecond(double second) {
+    print("onCurrentSecond second = $second");
+  }
+
+  @override
+  void onError(String error) {
+    print("onError error = $error");
+  }
+
+  @override
+  void onReady() {
+    print("onReady");
+  }
+
+  @override
+  void onStateChange(String state) {
+    print("onStateChange state = $state");
+  }
+
+  @override
+  void onVideoDuration(double duration) {
+    print("onVideoDuration duration = $duration");
   }
 }
