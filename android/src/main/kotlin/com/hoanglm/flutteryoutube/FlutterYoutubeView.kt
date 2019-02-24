@@ -51,17 +51,26 @@ class FlutterYoutubeView(
         youtubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
                 youtubePlayer = youTubePlayer
+                methodChannel.invokeMethod("onReady", null)
             }
 
             override fun onStateChange(
                 youTubePlayer: YouTubePlayer,
                 state: PlayerConstants.PlayerState
             ) {
-                Log.d(TAG, "state = $state")
+                onStateChange(state)
             }
 
             override fun onError(youTubePlayer: YouTubePlayer, error: PlayerConstants.PlayerError) {
-                Log.d(TAG, "error = ${error.name}")
+                onError(error)
+            }
+
+            override fun onVideoDuration(youTubePlayer: YouTubePlayer, duration: Float) {
+                methodChannel.invokeMethod("onVideoDuration", duration)
+            }
+
+            override fun onCurrentSecond(youTubePlayer: YouTubePlayer, second: Float) {
+                methodChannel.invokeMethod("onCurrentSecond", second)
             }
         })
     }
@@ -136,5 +145,31 @@ class FlutterYoutubeView(
         val youtubeId = methodCall.arguments as String
         youtubePlayer?.loadOrCueVideo(this@FlutterYoutubeView, youtubeId, 0f)
         result.success(null)
+    }
+
+    private fun onStateChange(state: PlayerConstants.PlayerState) {
+        Log.d(TAG, "state = $state")
+        val customState = when (state) {
+            PlayerConstants.PlayerState.VIDEO_CUED -> PlayerState.VIDEO_CUED.value
+            PlayerConstants.PlayerState.UNSTARTED -> PlayerState.UNSTARTED.value
+            PlayerConstants.PlayerState.ENDED -> PlayerState.ENDED.value
+            PlayerConstants.PlayerState.PLAYING -> PlayerState.PLAYING.value
+            PlayerConstants.PlayerState.PAUSED -> PlayerState.PAUSED.value
+            PlayerConstants.PlayerState.BUFFERING -> PlayerState.BUFFERING.value
+            else -> PlayerState.UNKNOWN.value
+        }
+        methodChannel.invokeMethod("onStateChange", customState)
+    }
+
+    private fun onError(error: PlayerConstants.PlayerError) {
+        Log.d(TAG, "error = ${error.name}")
+        val customError = when (error) {
+            PlayerConstants.PlayerError.INVALID_PARAMETER_IN_REQUEST -> PlayerError.INVALID_PARAMETER_IN_REQUEST.value
+            PlayerConstants.PlayerError.VIDEO_NOT_PLAYABLE_IN_EMBEDDED_PLAYER -> PlayerError.VIDEO_NOT_PLAYABLE_IN_EMBEDDED_PLAYER.value
+            PlayerConstants.PlayerError.HTML_5_PLAYER -> PlayerError.HTML_5_PLAYER.value
+            PlayerConstants.PlayerError.VIDEO_NOT_FOUND -> PlayerError.VIDEO_NOT_FOUND.value
+            else -> PlayerError.UNKNOWN.value
+        }
+        methodChannel.invokeMethod("onError", customError)
     }
 }
