@@ -11,7 +11,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  double _volume = 50;
+  double _videoDuration = 0.0;
+  double _currentVideoSecond = 0.0;
   FlutterYoutubeViewController _controller;
+
 
   @override
   void initState() {
@@ -23,7 +27,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _loadOrCueVideo() {
-    _controller.loadOrCueVideo('gcj2RUWQZ60', 0.0);
+    _controller.loadOrCueVideo('gcj2RUWQZ60', _currentVideoSecond);
   }
 
   void _play() {
@@ -53,11 +57,13 @@ class _MyAppState extends State<MyApp> {
             children: <Widget>[
               Container(
                   child: FlutterYoutubeView(
-                onViewCreated: _onYoutubeCreated,
-                listener: PlayerEventListenerImpl(),
-                params: YoutubeParam(
-                    videoId: 'gcj2RUWQZ60', showUI: false, startSeconds: 0.0),
-              )),
+                    onViewCreated: _onYoutubeCreated,
+                    listener: PlayerEventListenerImpl(),
+                    params: YoutubeParam(
+                        videoId: 'gcj2RUWQZ60',
+                        showUI: false,
+                        startSeconds: 0.0),
+                  )),
               Column(
                 children: <Widget>[
                   RaisedButton(
@@ -71,7 +77,17 @@ class _MyAppState extends State<MyApp> {
                   RaisedButton(
                     onPressed: _pause,
                     child: Text('Pause'),
-                  )
+                  ),
+                  Slider(
+                      value: _volume,
+                      onChanged: (double value) {
+                        setState(() {
+                          _volume = value;
+                          _setVolume(_volume.round());
+                        });
+                      },
+                      min: 0.0,
+                      max: 100)
                 ],
               )
             ],
@@ -81,6 +97,7 @@ class _MyAppState extends State<MyApp> {
 }
 
 class PlayerEventListenerImpl extends YouTubePlayerListener {
+
   @override
   void onCurrentSecond(double second) {
     print("onCurrentSecond second = $second");
