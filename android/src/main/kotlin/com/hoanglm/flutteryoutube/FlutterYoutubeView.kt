@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference
 class FlutterYoutubeView(
     context: Context,
     id: Int,
+    private val params: HashMap<String, *>,
     private val state: AtomicReference<State>,
     private val registrar: PluginRegistry.Registrar
 ) :
@@ -48,10 +49,23 @@ class FlutterYoutubeView(
     }
 
     private fun initYouTubePlayerView() {
+        Log.d(TAG, "params = $params")
+        val videoId = params["videoId"] as? String
+        val startSeconds = params["startSeconds"] as? Float ?: 0f
+        val showUI = params["showUI"] as? Boolean ?: true
+        val controller = youtubePlayerView.getPlayerUiController()
+        if (!showUI) {
+            controller.showUi(false)
+            controller.showVideoTitle(false)
+            controller.showYouTubeButton(false)
+        }
         youtubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
                 youtubePlayer = youTubePlayer
                 methodChannel.invokeMethod("onReady", null)
+                if (videoId != null) {
+                    youtubePlayer?.loadOrCueVideo(this@FlutterYoutubeView, videoId, startSeconds)
+                }
             }
 
             override fun onStateChange(

@@ -22,9 +22,13 @@ class _MyAppState extends State<MyApp> {
     this._controller = controller;
   }
 
-  void _playVideo() {
+  void _loadOrCueVideo() {
     _controller.loadOrCueVideo('gcj2RUWQZ60');
   }
+
+  void _play() {}
+
+  void _pause() {}
 
   @override
   Widget build(BuildContext context) {
@@ -37,12 +41,26 @@ class _MyAppState extends State<MyApp> {
             children: <Widget>[
               Container(
                   child: FlutterYoutubeView(
-                    onViewCreated: _onYoutubeCreated,
-                    listener: PlayerEventListenerImpl(),
-                  )),
-              RaisedButton(
-                onPressed: _playVideo,
-                child: Text('Click play video'),
+                onViewCreated: _onYoutubeCreated,
+                listener: PlayerEventListenerImpl(),
+                params: YoutubeParam(
+                    videoId: 'gcj2RUWQZ60', showUI: false, startSeconds: 0.0),
+              )),
+              Column(
+                children: <Widget>[
+                  RaisedButton(
+                    onPressed: _loadOrCueVideo,
+                    child: Text('Click reload video'),
+                  ),
+                  RaisedButton(
+                    onPressed: _play,
+                    child: Text('Play'),
+                  ),
+                  RaisedButton(
+                    onPressed: _pause,
+                    child: Text('Pause'),
+                  )
+                ],
               )
             ],
           )),

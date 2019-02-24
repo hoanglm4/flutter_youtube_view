@@ -15,6 +15,6 @@ class YoutubeFactory(
     PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context?, viewId: Int, args: Any?): PlatformView {
-        return FlutterYoutubeView(context!!, viewId, state, registrar)
+        return FlutterYoutubeView(context!!, viewId, args as HashMap<String, *>, state, registrar)
     }
 }

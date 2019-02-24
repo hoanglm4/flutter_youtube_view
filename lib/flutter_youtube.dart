@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'src/YouTubePlayerListener.dart';
+import 'src/YoutubeParam.dart';
 export 'src/YouTubePlayerListener.dart';
+export 'src/YoutubeParam.dart';
 
 typedef void FlutterYoutubeViewCreatedCallback(FlutterYoutubeViewController controller);
 
@@ -11,11 +13,13 @@ class FlutterYoutubeView extends StatefulWidget {
   const FlutterYoutubeView({
     Key key,
     this.onViewCreated,
-    this.listener
+    this.listener,
+    this.params
   }) : super(key: key);
 
   final FlutterYoutubeViewCreatedCallback onViewCreated;
   final YouTubePlayerListener listener;
+  final YoutubeParam params;
 
   @override
   State<StatefulWidget> createState() => _FlutterYoutubeViewState();
@@ -24,10 +28,17 @@ class FlutterYoutubeView extends StatefulWidget {
 class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
   @override
   Widget build(BuildContext context) {
+    var params = widget.params ?? YoutubeParam();
     if (defaultTargetPlatform == TargetPlatform.android) {
       return AndroidView(
         viewType: 'plugins.hoanglm.com/youtube',
         onPlatformViewCreated: _onPlatformViewCreated,
+        creationParams: <String, dynamic>{
+          "videoId": params.videoId,
+          "showUI": params.showUI,
+          "startSeconds": params.startSeconds
+        },
+        creationParamsCodec: StandardMessageCodec(),
       );
     }
     return Text(
