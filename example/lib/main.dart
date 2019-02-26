@@ -10,16 +10,45 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> implements YouTubePlayerListener {
   double _volume = 50;
   double _videoDuration = 0.0;
   double _currentVideoSecond = 0.0;
+  String _playerState = "";
+  bool _showUI = false;
   FlutterYoutubeViewController _controller;
-
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void onCurrentSecond(double second) {
+    print("onCurrentSecond second = $second");
+  }
+
+  @override
+  void onError(String error) {
+    print("onError error = $error");
+  }
+
+  @override
+  void onReady() {
+    print("onReady");
+  }
+
+  @override
+  void onStateChange(String state) {
+    print("onStateChange state = $state");
+    setState(() {
+      _playerState = state;
+    });
+  }
+
+  @override
+  void onVideoDuration(double duration) {
+    print("onVideoDuration duration = $duration");
   }
 
   void _onYoutubeCreated(FlutterYoutubeViewController controller) {
@@ -46,6 +75,12 @@ class _MyAppState extends State<MyApp> {
     _controller.setVolume(volumePercent);
   }
 
+  void _showDefaultControl(bool show) {
+    setState(() {
+      _showUI = show;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -58,14 +93,22 @@ class _MyAppState extends State<MyApp> {
               Container(
                   child: FlutterYoutubeView(
                     onViewCreated: _onYoutubeCreated,
-                    listener: PlayerEventListenerImpl(),
+                    listener: this,
                     params: YoutubeParam(
                         videoId: 'gcj2RUWQZ60',
-                        showUI: false,
+                        showUI: _showUI,
                         startSeconds: 0.0),
                   )),
               Column(
                 children: <Widget>[
+                  Text(
+                    'Current state: $_playerState',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                  Checkbox(
+                    value: _showUI,
+                    onChanged: _showDefaultControl,
+                  ),
                   RaisedButton(
                     onPressed: _loadOrCueVideo,
                     child: Text('Click reload video'),
@@ -78,16 +121,14 @@ class _MyAppState extends State<MyApp> {
                     onPressed: _pause,
                     child: Text('Pause'),
                   ),
-                  Slider(
-                      value: _volume,
+                  SliderVolume(
+                      volumeValue: _volume,
                       onChanged: (double value) {
                         setState(() {
                           _volume = value;
                           _setVolume(_volume.round());
                         });
-                      },
-                      min: 0.0,
-                      max: 100)
+                      })
                 ],
               )
             ],
@@ -96,30 +137,24 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class PlayerEventListenerImpl extends YouTubePlayerListener {
+typedef void VolumeChangedCallback(double value);
+
+class SliderVolume extends StatelessWidget {
+  SliderVolume({this.volumeValue, this.onChanged});
+
+  final double volumeValue;
+  final VolumeChangedCallback onChanged;
 
   @override
-  void onCurrentSecond(double second) {
-    print("onCurrentSecond second = $second");
-  }
-
-  @override
-  void onError(String error) {
-    print("onError error = $error");
-  }
-
-  @override
-  void onReady() {
-    print("onReady");
-  }
-
-  @override
-  void onStateChange(String state) {
-    print("onStateChange state = $state");
-  }
-
-  @override
-  void onVideoDuration(double duration) {
-    print("onVideoDuration duration = $duration");
+  Widget build(BuildContext context) {
+    return Row(children: <Widget>[
+      Text(
+        'Volume ${volumeValue.round()}',
+        style: TextStyle(color: Colors.blue),
+      ),
+      Expanded(
+          child: Slider(
+              value: volumeValue, onChanged: onChanged, min: 0.0, max: 100))
+    ]);
   }
 }
