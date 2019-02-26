@@ -14,7 +14,7 @@ class FlutterYoutubeView extends StatefulWidget {
     Key key,
     this.onViewCreated,
     this.listener,
-    this.params
+    this.params = const YoutubeParam()
   }) : super(key: key);
 
   final FlutterYoutubeViewCreatedCallback onViewCreated;
@@ -28,15 +28,14 @@ class FlutterYoutubeView extends StatefulWidget {
 class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
   @override
   Widget build(BuildContext context) {
-    var params = widget.params ?? YoutubeParam();
     if (defaultTargetPlatform == TargetPlatform.android) {
       return AndroidView(
         viewType: 'plugins.hoanglm.com/youtube',
         onPlatformViewCreated: _onPlatformViewCreated,
         creationParams: <String, dynamic>{
-          "videoId": params.videoId,
-          "showUI": params.showUI,
-          "startSeconds": params.startSeconds
+          "videoId": widget.params.videoId,
+          "showUI": widget.params.showUI,
+          "startSeconds": widget.params.startSeconds
         },
         creationParamsCodec: StandardMessageCodec(),
       );

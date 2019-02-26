@@ -1,11 +1,11 @@
 class YoutubeParam {
-  String videoId;
-  bool showUI;
-  double startSeconds;
+  final String videoId;
+  final bool showUI;
+  final double startSeconds;
 
-  YoutubeParam({
+  const YoutubeParam({
     this.videoId,
-    this.showUI,
-    this.startSeconds
+    this.showUI = true,
+    this.startSeconds = 0.0
   });
 }

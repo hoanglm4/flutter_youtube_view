@@ -51,8 +51,8 @@ class FlutterYoutubeView(
     private fun initYouTubePlayerView() {
         Log.d(TAG, "params = $params")
         val videoId = params["videoId"] as? String
-        val startSeconds = params["startSeconds"] as? Float ?: 0f
-        val showUI = params["showUI"] as? Boolean ?: true
+        val startSeconds = (params["startSeconds"] as Double).toFloat()
+        val showUI = params["showUI"] as Boolean
         val controller = youtubePlayerView.getPlayerUiController()
         if (!showUI) {
             controller.showUi(false)
