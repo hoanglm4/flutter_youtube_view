@@ -75,6 +75,7 @@ class FlutterYoutubeViewController {
     if (_listener != null) {
       _channel.setMethodCallHandler(handleEvent);
     }
+    init();
   }
 
   Future<void> loadOrCueVideo(String videoId, double startSeconds) async {
@@ -96,6 +97,10 @@ class FlutterYoutubeViewController {
 
   Future<void> seekTo(double time) async {
     await _channel.invokeMethod('seekTo', time);
+  }
+
+  Future<void> init() async {
+    await _channel.invokeMethod('init', null);
   }
 
   /**

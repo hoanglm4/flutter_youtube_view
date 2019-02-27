@@ -15,15 +15,20 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     private let frame: CGRect
     private let viewId: Int64
     private let registrar: FlutterPluginRegistrar
+    private let params: [String: Any]?
     private let playerView: UIView
     private let client = XCDYouTubeClient()
     private let channel: FlutterMethodChannel
     private var player = ZHPlayer()
     
-    init(_frame: CGRect, _viewId: Int64, _registrar: FlutterPluginRegistrar) {
+    init(_frame: CGRect,
+         _viewId: Int64,
+         _params: [String: Any]?,
+         _registrar: FlutterPluginRegistrar) {
         frame = _frame
         viewId = _viewId
         registrar = _registrar
+        params = _params
         playerView = UIView(frame: frame)
         channel = FlutterMethodChannel(
             name: "plugins.hoanglm.com/youtube_\(viewId)",
@@ -34,7 +39,6 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
             guard let `self` = self else { return }
             `self`.handle(call, result: result)
         }
-        self.initPlayer()
     }
     
     func view() -> UIView {
@@ -45,7 +49,10 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
         switch call.method {
         case "loadOrCueVideo":
             print("loadOrCueVideo is called")
-            loadOrCueVideo(videoId: "gcj2RUWQZ60")
+            let params = call.arguments as! Dictionary<String, Any>
+            let videoId = params["videoId"] as! String
+            let startSeconds = params["startSeconds"] as? Double ?? 0.0
+            loadOrCueVideo(videoId: videoId, startSeconds: startSeconds)
             result(nil)
         case "play":
             print("play is called")
@@ -57,9 +64,15 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
             result(nil)
         case "seekTo":
             print("seekTo is called")
+            player.seek(to: CMTime(seconds: call.arguments as! Double, preferredTimescale: 1))
             result(nil)
         case "setVolume":
             print("setVolume is called")
+            let volume = call.arguments as! Float
+            player.volume = volume / 100
+            result(nil)
+        case "init":
+            self.initPlayer()
             result(nil)
         default:
             result(FlutterMethodNotImplemented)
@@ -75,9 +88,17 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
             // Fallback on earlier versions
         }
         channel.invokeMethod("onReady", arguments: nil)
+        if let params = params {
+            let videoId = params["videoId"] as? String
+            let startSeconds = (params["startSeconds"] as! Double)
+            let showUI = params["showUI"] as! Bool
+            if let videoId = videoId {
+                loadOrCueVideo(videoId: videoId, startSeconds: startSeconds)
+            }
+        }
     }
     
-    private func loadOrCueVideo(videoId: String) {
+    private func loadOrCueVideo(videoId: String, startSeconds: Double = 0.0) {
         self.player.stop()
         self.loadUrl(videoId: videoId) {[weak self] (url: URL?, error: Error? ) -> Void in
             guard let `self` = self else { return }

@@ -18,7 +18,10 @@ class YoutubeFactory: NSObject, FlutterPlatformViewFactory {
         configureAudioSession()
     }
     func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
-        return FlutterYoutubeView(_frame: frame, _viewId: viewId, _registrar: registrar)
+        return FlutterYoutubeView(_frame: frame,
+                                  _viewId: viewId,
+                                  _params: args as? Dictionary<String, Any> ?? nil,
+                                  _registrar: registrar)
     }
     
     private func configureAudioSession() {
