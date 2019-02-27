@@ -39,6 +39,17 @@ class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
         },
         creationParamsCodec: StandardMessageCodec(),
       );
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return UiKitView(
+        viewType: 'plugins.hoanglm.com/youtube',
+        onPlatformViewCreated: _onPlatformViewCreated,
+        creationParams: <String, dynamic>{
+          "videoId": widget.params.videoId,
+          "showUI": widget.params.showUI,
+          "startSeconds": widget.params.startSeconds
+        },
+        creationParamsCodec: StandardMessageCodec(),
+      );
     }
     return Text(
         '$defaultTargetPlatform is not yet supported by the text_view plugin');
