@@ -26,6 +26,9 @@ class FlutterYoutubeView extends StatefulWidget {
 }
 
 class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
+  final Completer<FlutterYoutubeViewController> _controller =
+  Completer<FlutterYoutubeViewController>();
+
   @override
   Widget build(BuildContext context) {
     if (defaultTargetPlatform == TargetPlatform.android) {
@@ -55,13 +58,23 @@ class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
         '$defaultTargetPlatform is not yet supported by the text_view plugin');
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   void _onPlatformViewCreated(int id) {
-    if (widget.onViewCreated == null) {
-      return;
+    final controller = new FlutterYoutubeViewController._(id, widget.listener);
+    _controller.complete(controller);
+    if (widget.onViewCreated != null) {
+      widget.onViewCreated(controller);
     }
-    widget.onViewCreated(
-        new FlutterYoutubeViewController._(id, widget.listener)
-    );
+    _initialization();
+  }
+
+  void _initialization() async {
+    final controller = await _controller.future;
+    controller.initialization();
   }
 }
 
@@ -75,7 +88,10 @@ class FlutterYoutubeViewController {
     if (_listener != null) {
       _channel.setMethodCallHandler(handleEvent);
     }
-    init();
+  }
+
+  Future<void> initialization() async {
+    await _channel.invokeMethod('initialization');
   }
 
   Future<void> loadOrCueVideo(String videoId, double startSeconds) async {
@@ -97,10 +113,6 @@ class FlutterYoutubeViewController {
 
   Future<void> seekTo(double time) async {
     await _channel.invokeMethod('seekTo', time);
-  }
-
-  Future<void> init() async {
-    await _channel.invokeMethod('init', null);
   }
 
   /**

@@ -17,6 +17,11 @@ class YoutubeFactory: NSObject, FlutterPlatformViewFactory {
         super.init()
         configureAudioSession()
     }
+    
+    func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
+        return FlutterStandardMessageCodec.sharedInstance()
+    }
+    
     func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
         return FlutterYoutubeView(_frame: frame,
                                   _viewId: viewId,

@@ -19,7 +19,8 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     private let playerView: UIView
     private let client = XCDYouTubeClient()
     private let channel: FlutterMethodChannel
-    private var player = ZHPlayer()
+    private let player = ZHPlayer()
+    private var playerController: AVPlayerViewController?
     
     init(_frame: CGRect,
          _viewId: Int64,
@@ -45,8 +46,22 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
         return playerView
     }
     
+    private func dispose() {
+        let rootController = UIApplication.shared.keyWindow!.rootViewController!
+        rootController.childViewControllers.forEach{ child in
+            if (child == playerController) {
+                child.willMove(toParentViewController: nil)
+                child.view.removeFromSuperview()
+                child.removeFromParentViewController()
+            }
+        }
+    }
+    
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
+        case "initialization":
+            self.initPlayer()
+            result(nil)
         case "loadOrCueVideo":
             print("loadOrCueVideo is called")
             let params = call.arguments as! Dictionary<String, Any>
@@ -71,9 +86,6 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
             let volume = call.arguments as! Float
             player.volume = volume / 100
             result(nil)
-        case "init":
-            self.initPlayer()
-            result(nil)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -81,20 +93,33 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     
     private func initPlayer() {
         self.player.delegate = self
-        self.playerView.addSubview(player.view)
+        guard let params = params else {
+            return
+        }
+        let videoId = params["videoId"] as? String
+        let startSeconds = (params["startSeconds"] as! Double)
+        let showUI = params["showUI"] as! Bool
+        if (showUI) {
+            let avController = AVPlayerViewController()
+            playerController = avController
+            let rootController = UIApplication.shared.keyWindow!.rootViewController!
+            avController.player = player.view.player
+            
+            rootController.addChildViewController(avController)
+            avController.view.frame = self.playerView.bounds
+            self.playerView.addSubview(avController.view)
+            avController.didMove(toParentViewController: rootController)
+        } else {
+            self.playerView.addSubview(player.view)
+        }
         if #available(iOS 9, *) {
             player.view.fillToSuperview()
         } else {
             // Fallback on earlier versions
         }
         channel.invokeMethod("onReady", arguments: nil)
-        if let params = params {
-            let videoId = params["videoId"] as? String
-            let startSeconds = (params["startSeconds"] as! Double)
-            let showUI = params["showUI"] as! Bool
-            if let videoId = videoId {
-                loadOrCueVideo(videoId: videoId, startSeconds: startSeconds)
-            }
+        if let videoId = videoId {
+            loadOrCueVideo(videoId: videoId, startSeconds: startSeconds)
         }
     }
     
@@ -149,6 +174,11 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     
     private func onError(error: PlayerError) {
         channel.invokeMethod("onError", arguments: error.rawValue)
+    }
+    
+    deinit {
+        dispose()
+        print("FlutterYoutubeView is deninit")
     }
 }
 

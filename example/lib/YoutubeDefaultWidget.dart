@@ -63,17 +63,19 @@ class _MyAppState extends State<YoutubeDefaultWidget>
               params: YoutubeParam(
                   videoId: 'gcj2RUWQZ60', showUI: true, startSeconds: 0.0),
             )),
-            Column(
-              children: <Widget>[
-                Text(
-                  'Current state: $_playerState',
-                  style: TextStyle(color: Colors.blue),
-                ),
-                RaisedButton(
-                  onPressed: _loadOrCueVideo,
-                  child: Text('Click reload video'),
-                ),
-              ],
+            Center(
+                child: Column(
+                  children: <Widget>[
+                    Text(
+                      'Current state: $_playerState',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                    RaisedButton(
+                      onPressed: _loadOrCueVideo,
+                      child: Text('Click reload video'),
+                    ),
+                  ],
+                )
             )
           ],
         ));
