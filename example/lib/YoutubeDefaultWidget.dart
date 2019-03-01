@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_youtube_view/flutter_youtube.dart';
+import 'package:flutter_youtube_view/flutter_youtube_view.dart';
 
 class YoutubeDefaultWidget extends StatefulWidget {
   @override
