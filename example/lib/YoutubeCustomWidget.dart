@@ -17,6 +17,7 @@ class _MyAppState extends State<YoutubeCustomWidget>
   @override
   void onCurrentSecond(double second) {
     print("onCurrentSecond second = $second");
+    _currentVideoSecond = second;
   }
 
   @override

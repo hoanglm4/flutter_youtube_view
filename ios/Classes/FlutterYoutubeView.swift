@@ -79,7 +79,7 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
             result(nil)
         case "seekTo":
             print("seekTo is called")
-            player.seek(to: CMTime(seconds: call.arguments as! Double, preferredTimescale: 1))
+            player.seek(to: call.arguments as! Double)
             result(nil)
         case "setVolume":
             print("setVolume is called")
@@ -96,6 +96,7 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
         guard let params = params else {
             return
         }
+        print("params = \(params)")
         let videoId = params["videoId"] as? String
         let startSeconds = (params["startSeconds"] as! Double)
         let showUI = params["showUI"] as! Bool
@@ -136,8 +137,7 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
                 return
             }
             print("url when loadOrCueVideo called = \(url)")
-            self.player.url = url
-            self.player.play()
+            self.player.loadVideo(url: url, startSeconds: startSeconds)
         }
     }
     

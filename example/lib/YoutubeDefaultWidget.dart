@@ -15,6 +15,7 @@ class _MyAppState extends State<YoutubeDefaultWidget>
   @override
   void onCurrentSecond(double second) {
     print("onCurrentSecond second = $second");
+    _currentVideoSecond = second;
   }
 
   @override
@@ -61,7 +62,7 @@ class _MyAppState extends State<YoutubeDefaultWidget>
               onViewCreated: _onYoutubeCreated,
               listener: this,
               params: YoutubeParam(
-                  videoId: 'gcj2RUWQZ60', showUI: true, startSeconds: 0.0),
+                  videoId: 'gcj2RUWQZ60', showUI: true, startSeconds: 5 * 60.0),
             )),
             Center(
                 child: Column(

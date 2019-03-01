@@ -57,13 +57,6 @@ public class ZHPlayer: NSObject {
             self.delegate?.playerBufferingStateDidChange?(self)
         }
     }
-
-    public var url: URL? {
-        didSet {
-            guard let url = url else { return }
-            validateAsset(AVAsset(url: url))
-        }
-    }
     
     public let view = ZHPlayerView(frame: CGRect.zero)
     
@@ -138,6 +131,10 @@ public class ZHPlayer: NSObject {
         }
     }
     
+    public func loadVideo(url: URL, startSeconds: Double = 0.0) {
+        validateAsset(AVAsset(url: url), startSeconds: startSeconds)
+    }
+    
     public func play() {
         guard let _ = player.currentItem else { return }
         guard playbackState != .playing else { return }
@@ -157,13 +154,13 @@ public class ZHPlayer: NSObject {
         playbackState = .stopped
         player.pause()
         player.replaceCurrentItem(with: nil)
-        url = nil
         error = nil
     }
     
-    public func seek(to time: CMTime, completionHandler: ((Bool) -> Swift.Void)? = nil) {
+    public func seek(to seconds: Double, completionHandler: ((Bool) -> Swift.Void)? = nil) {
         
         guard let playerItem = player.currentItem  else { return }
+        let time = CMTime(seconds: seconds, preferredTimescale: playerItem.currentTime().timescale)
         
         bufferingState = .stalled
         
@@ -209,7 +206,7 @@ public class ZHPlayer: NSObject {
 
 private extension ZHPlayer {
     
-    func validateAsset(_ asset: AVAsset) {
+    func validateAsset(_ asset: AVAsset, startSeconds: Double = 0.0) {
         
         let keys = [PlayerKey.tracks, PlayerKey.playable, PlayerKey.duration]
         
@@ -241,6 +238,8 @@ private extension ZHPlayer {
                     let playerItem = AVPlayerItem(asset:asset)
                     self.registerObservers(playerItem)
                     self.player.replaceCurrentItem(with: playerItem)
+                    self.seek(to: startSeconds)
+                    self.play()
                 }
             }
             
@@ -258,17 +257,11 @@ extension ZHPlayer {
             guard item.isPlaybackLikelyToKeepUp else { return }
             self.bufferingState = .through
             delegate?.playerBufferingStateDidChange?(self)
-            guard autoplay else { return }
-            if (playbackState == .playing) {
-                player.play()
-            }
         }
         else if keyPath == PlayerKey.emptyBuffer {
             guard item.isPlaybackBufferEmpty else { return }
             self.bufferingState = .stalled
             delegate?.playerBufferingStateDidChange?(self)
-            guard autoplay else { return }
-            player.pause()
         }
         else if keyPath == PlayerKey.loadedTime {
             let timeRanges = item.loadedTimeRanges
