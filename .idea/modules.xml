@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/flutter_youtube.iml" filepath="$PROJECT_DIR$/flutter_youtube.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android/flutter_youtube_android.iml" filepath="$PROJECT_DIR$/android/flutter_youtube_android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/example/android/flutter_youtube_example_android.iml" filepath="$PROJECT_DIR$/example/android/flutter_youtube_example_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flutter_youtube_view.iml" filepath="$PROJECT_DIR$/flutter_youtube_view.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/flutter_youtube_view_android.iml" filepath="$PROJECT_DIR$/android/flutter_youtube_view_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/example/android/flutter_youtube_view_example_android.iml" filepath="$PROJECT_DIR$/example/android/flutter_youtube_view_example_android.iml" />
     </modules>
   </component>
 </project>

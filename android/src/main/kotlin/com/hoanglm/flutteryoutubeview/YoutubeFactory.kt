@@ -1,4 +1,4 @@
-package com.hoanglm.flutteryoutube
+package com.hoanglm.flutteryoutubeview
 
 import android.content.Context
 import androidx.lifecycle.Lifecycle

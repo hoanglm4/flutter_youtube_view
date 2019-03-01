@@ -1,4 +1,4 @@
-package com.hoanglm.flutteryoutubeexample
+package com.hoanglm.flutteryoutubeviewexample
 
 import android.os.Bundle
 

@@ -1,4 +1,4 @@
-package com.hoanglm.flutteryoutube
+package com.hoanglm.flutteryoutubeview
 
 import android.app.Activity
 import android.app.Application
@@ -7,7 +7,7 @@ import androidx.lifecycle.Lifecycle
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import java.util.concurrent.atomic.AtomicReference
 
-class FlutterYoutubePlugin(registrar: Registrar): Application.ActivityLifecycleCallbacks {
+class FlutterYoutubeViewPlugin(registrar: Registrar): Application.ActivityLifecycleCallbacks {
     private val state: AtomicReference<Lifecycle.State> = AtomicReference(Lifecycle.State.INITIALIZED)
     private val registrarActivityHashCode: Int
 
@@ -62,7 +62,7 @@ class FlutterYoutubePlugin(registrar: Registrar): Application.ActivityLifecycleC
     companion object {
         @JvmStatic
         fun registerWith(registrar: Registrar) {
-            val plugin = FlutterYoutubePlugin(registrar)
+            val plugin = FlutterYoutubeViewPlugin(registrar)
             registrar.activity().application.registerActivityLifecycleCallbacks(plugin)
             registrar
                 .platformViewRegistry()

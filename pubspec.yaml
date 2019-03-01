@@ -1,4 +1,4 @@
-name: flutter_youtube
+name: flutter_youtube_view
 description: A new Flutter plugin.
 version: 0.0.1
 author:
@@ -21,8 +21,8 @@ flutter:
   # be modified. They are used by the tooling to maintain consistency when
   # adding or updating assets for this project.
   plugin:
-    androidPackage: com.hoanglm.flutteryoutube
-    pluginClass: FlutterYoutubePlugin
+    androidPackage: com.hoanglm.flutteryoutubeview
+    pluginClass: FlutterYoutubeViewPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

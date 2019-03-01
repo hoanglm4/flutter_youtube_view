@@ -1,4 +1,4 @@
-package com.hoanglm.flutteryoutube
+package com.hoanglm.flutteryoutubeview
 
 enum class PlayerState(val value: String) {
     UNKNOWN("UNKNOWN"),

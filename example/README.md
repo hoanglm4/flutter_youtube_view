@@ -1,6 +1,6 @@
-# flutter_youtube_example
+# flutter_youtube_view_example
 
-Demonstrates how to use the flutter_youtube plugin.
+Demonstrates how to use the flutter_youtube_view plugin.
 
 ## Getting Started
 

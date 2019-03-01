@@ -1,5 +1,5 @@
-name: flutter_youtube_example
-description: Demonstrates how to use the flutter_youtube plugin.
+name: flutter_youtube_view_example
+description: Demonstrates how to use the flutter_youtube_view plugin.
 publish_to: 'none'
 
 environment:
@@ -17,7 +17,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_youtube:
+  flutter_youtube_view:
     path: ../
 
 # For information on the generic Dart part of this file, see the
