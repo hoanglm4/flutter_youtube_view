@@ -1,4 +1,4 @@
-# flutter_youtube
+# flutter_youtube_view
 
 This plugin provides YoutubeView widget.
 
