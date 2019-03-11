@@ -28,13 +28,13 @@ class HomeScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pushNamed('/custom');
             },
-            child: Text('Open non custom player'),
+            child: Text('Open customize player'),
           ),
           RaisedButton(
             onPressed: () {
               Navigator.of(context).pushNamed('/non_custom');
             },
-            child: Text('Open custom player'),
+            child: Text('Open non customize player'),
           ),
         ]),
       ),
