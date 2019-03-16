@@ -5,7 +5,9 @@ import android.app.Application
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
@@ -20,7 +22,7 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.utils.loadOrC
 import java.util.concurrent.atomic.AtomicReference
 
 class FlutterYoutubeView(
-    context: Context,
+    private val context: Context,
     id: Int,
     private val params: HashMap<String, *>,
     private val state: AtomicReference<State>,
@@ -33,19 +35,46 @@ class FlutterYoutubeView(
 
     private val TAG = "FlutterYoutubeView"
 
-    private val youtubePlayerView: YouTubePlayerView
+    private lateinit var youtubePlayerView: YouTubePlayerView
+    private lateinit var container: FLTPlayerView
+    private val view: FrameLayout
     private var youtubePlayer: YouTubePlayer? = null
     private val methodChannel: MethodChannel
     private val registrarActivityHashCode: Int
     private var disposed = false
 
     init {
-        youtubePlayerView = YouTubePlayerView(context)
+        val mode = params["scale_mode"] as? Int ?: 0
+        view = createView(mode = mode)
+        changeScaleMode(mode = mode)
         methodChannel = MethodChannel(registrar.messenger(), "plugins.hoanglm.com/youtube_$id")
         methodChannel.setMethodCallHandler(this)
         registrarActivityHashCode = registrar.activity().hashCode()
         registrar.activity().application.registerActivityLifecycleCallbacks(this)
         initYouTubePlayerView()
+    }
+
+    private fun createView(mode: Int = 0): FrameLayout {
+        val videoMode = VideoScaleMode.values().find { it.mode == mode }
+        container = FLTPlayerView(context).apply {
+            setVideoScaleMode(mode = videoMode!!)
+        }
+        container.apply {
+            youtubePlayerView = YouTubePlayerView(context)
+            val layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+            addView(youtubePlayerView, layoutParams)
+        }
+        return FrameLayout(context).apply {
+            val layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            layoutParams.gravity = Gravity.CENTER
+            addView(container, layoutParams)
+        }
     }
 
     private fun initYouTubePlayerView() {
@@ -59,7 +88,7 @@ class FlutterYoutubeView(
             controller.showVideoTitle(false)
             controller.showYouTubeButton(false)
         }
-        addObserver(youtubePlayerView)
+        this.addObserver(youtubePlayerView)
         youtubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
                 youtubePlayer = youTubePlayer
@@ -91,23 +120,28 @@ class FlutterYoutubeView(
     }
 
     override fun getView(): View {
-        return youtubePlayerView
+        return view
     }
 
     override fun dispose() {
         disposed = true
         registrar.activity().application.unregisterActivityLifecycleCallbacks(this)
-        removeObserver(youtubePlayerView)
         youtubePlayerView.release()
+        removeObserver(youtubePlayerView)
     }
 
     override fun onMethodCall(methodCall: MethodCall, result: MethodChannel.Result) {
         when (methodCall.method) {
+            "initialization" -> result.success(null)
             "loadOrCueVideo" -> loadOrCueVideo(methodCall, result)
             "play" -> play(result)
             "pause" -> pause(result)
             "seekTo" -> seekTo(methodCall, result)
             "setVolume" -> setVolume(methodCall, result)
+            "scaleMode" -> {
+                changeScaleMode(methodCall.arguments as Int)
+                result.success(null)
+            }
             else -> result.notImplemented()
         }
     }
@@ -193,6 +227,43 @@ class FlutterYoutubeView(
         val volumePercent = methodCall.arguments as Int
         youtubePlayer?.setVolume(volumePercent)
         result.success(null)
+    }
+
+    private fun changeScaleMode(mode: Int) {
+        val videoMode = VideoScaleMode.values().find { it.mode == mode }
+        container.setVideoScaleMode(videoMode!!)
+        val playerHeight = when (videoMode) {
+            VideoScaleMode.NONE -> FrameLayout.LayoutParams.MATCH_PARENT
+            VideoScaleMode.FIT_WIDTH -> FrameLayout.LayoutParams.WRAP_CONTENT
+            VideoScaleMode.FIT_HEIGHT -> FrameLayout.LayoutParams.WRAP_CONTENT
+        }
+        val videoParams = youtubePlayerView.layoutParams.apply {
+            width = FrameLayout.LayoutParams.MATCH_PARENT
+            height = playerHeight
+        }
+        youtubePlayerView.layoutParams = videoParams
+        val containerWidth = when (videoMode) {
+            VideoScaleMode.NONE -> FrameLayout.LayoutParams.MATCH_PARENT
+            VideoScaleMode.FIT_WIDTH -> FrameLayout.LayoutParams.MATCH_PARENT
+            VideoScaleMode.FIT_HEIGHT -> FrameLayout.LayoutParams.WRAP_CONTENT
+        }
+        val containerHeight = when (videoMode) {
+            VideoScaleMode.NONE -> FrameLayout.LayoutParams.MATCH_PARENT
+            VideoScaleMode.FIT_WIDTH -> FrameLayout.LayoutParams.WRAP_CONTENT
+            VideoScaleMode.FIT_HEIGHT -> FrameLayout.LayoutParams.MATCH_PARENT
+        }
+        val containerGravity = when (videoMode) {
+            VideoScaleMode.NONE -> Gravity.CENTER
+            VideoScaleMode.FIT_WIDTH -> Gravity.CENTER_HORIZONTAL
+            VideoScaleMode.FIT_HEIGHT -> Gravity.CENTER_HORIZONTAL
+        }
+        val containerParams = (container.layoutParams as FrameLayout.LayoutParams).apply {
+            width = containerWidth
+            height = containerHeight
+            gravity = containerGravity
+        }
+        container.layoutParams = containerParams
+        view.requestLayout()
     }
 
     private fun onStateChange(state: PlayerConstants.PlayerState) {

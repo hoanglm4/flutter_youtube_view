@@ -13,10 +13,11 @@ class _MyAppState extends State<YoutubeCustomWidget>
   double _currentVideoSecond = 0.0;
   String _playerState = "";
   FlutterYoutubeViewController _controller;
+  YoutubeScaleMode _mode = YoutubeScaleMode.none;
 
   @override
   void onCurrentSecond(double second) {
-    print("onCurrentSecond second = $second");
+   // print("onCurrentSecond second = $second");
     _currentVideoSecond = second;
   }
 
@@ -67,6 +68,13 @@ class _MyAppState extends State<YoutubeCustomWidget>
     _controller.setVolume(volumePercent);
   }
 
+  void _changeScaleMode(YoutubeScaleMode mode) {
+    setState(() {
+        _mode = mode;
+        _controller.changeScaleMode(mode);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,11 +85,12 @@ class _MyAppState extends State<YoutubeCustomWidget>
           children: <Widget>[
             Container(
                 child: FlutterYoutubeView(
-              onViewCreated: _onYoutubeCreated,
-              listener: this,
-              params: YoutubeParam(
-                  videoId: 'gcj2RUWQZ60', showUI: false, startSeconds: 0.0),
-            )),
+                  scaleMode: _mode,
+                  onViewCreated: _onYoutubeCreated,
+                  listener: this,
+                  params: YoutubeParam(
+                      videoId: 'gcj2RUWQZ60', showUI: false, startSeconds: 0.0),
+                )),
             Column(
               children: <Widget>[
                 Text(
@@ -92,20 +101,7 @@ class _MyAppState extends State<YoutubeCustomWidget>
                   onPressed: _loadOrCueVideo,
                   child: Text('Click reload video'),
                 ),
-                RaisedButton(
-                  onPressed: _play,
-                  child: Text('Play'),
-                ),
-                RaisedButton(
-                  onPressed: _pause,
-                  child: Text('Pause'),
-                ),
-                RaisedButton(
-                  onPressed: () {
-                    _seekTo(20.0);
-                  },
-                  child: Text('seekTo 20 seconds'),
-                ),
+                _buildControl(),
                 SliderVolume(
                     volumeValue: _volume,
                     onChanged: (double value) {
@@ -113,11 +109,69 @@ class _MyAppState extends State<YoutubeCustomWidget>
                         _volume = value;
                         _setVolume(_volume.round());
                       });
-                    })
+                    }),
+                _buildScaleModeRadioGroup()
               ],
             )
           ],
         ));
+  }
+
+  Widget _buildControl() {
+    return new Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        RaisedButton(
+          onPressed: _play,
+          child: Text('Play'),
+        ),
+        RaisedButton(
+          onPressed: _pause,
+          child: Text('Pause'),
+        ),
+        RaisedButton(
+          onPressed: () {
+            _seekTo(20.0);
+          },
+          child: Text('seekTo 20s'),
+        )
+      ],
+    );
+  }
+
+  Widget _buildScaleModeRadioGroup() {
+    return new Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        new Radio(
+          value: YoutubeScaleMode.none,
+          groupValue: _mode,
+          onChanged: _changeScaleMode,
+        ),
+        new Text(
+          'none',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: YoutubeScaleMode.fitWidth,
+          groupValue: _mode,
+          onChanged: _changeScaleMode,
+        ),
+        new Text(
+          'fitWidth',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: YoutubeScaleMode.fitHeight,
+          groupValue: _mode,
+          onChanged: _changeScaleMode,
+        ),
+        new Text(
+          'fitHeight',
+          style: TextStyle(color: Colors.blue),
+        ),
+      ],
+    );
   }
 }
 
