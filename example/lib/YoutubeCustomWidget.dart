@@ -100,6 +100,12 @@ class _MyAppState extends State<YoutubeCustomWidget>
                   onPressed: _pause,
                   child: Text('Pause'),
                 ),
+                RaisedButton(
+                  onPressed: () {
+                    _seekTo(20.0);
+                  },
+                  child: Text('seekTo 20 seconds'),
+                ),
                 SliderVolume(
                     volumeValue: _volume,
                     onChanged: (double value) {
