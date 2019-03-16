@@ -162,7 +162,7 @@ class FlutterYoutubeView(
     private fun loadOrCueVideo(methodCall: MethodCall, result: MethodChannel.Result) {
         val params = methodCall.arguments as HashMap<String, *>
         val videoId = params["videoId"] as String
-        val startSeconds = params["startSeconds"] as? Float ?: 0f
+        val startSeconds = (params["startSeconds"] as? Double ?: 0.0).toFloat()
         youtubePlayer?.loadOrCueVideo(this@FlutterYoutubeView, videoId, startSeconds)
         result.success(null)
     }
@@ -178,7 +178,7 @@ class FlutterYoutubeView(
     }
 
     private fun seekTo(methodCall: MethodCall, result: MethodChannel.Result) {
-        val time = methodCall.arguments as Float
+        val time = (methodCall.arguments as Double).toFloat()
         youtubePlayer?.seekTo(time)
         result.success(null)
     }
