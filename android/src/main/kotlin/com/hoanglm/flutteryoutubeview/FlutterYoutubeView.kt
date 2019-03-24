@@ -59,6 +59,7 @@ class FlutterYoutubeView(
             controller.showVideoTitle(false)
             controller.showYouTubeButton(false)
         }
+        addObserver(youtubePlayerView)
         youtubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
                 youtubePlayer = youTubePlayer
@@ -96,6 +97,8 @@ class FlutterYoutubeView(
     override fun dispose() {
         disposed = true
         registrar.activity().application.unregisterActivityLifecycleCallbacks(this)
+        removeObserver(youtubePlayerView)
+        youtubePlayerView.release()
     }
 
     override fun onMethodCall(methodCall: MethodCall, result: MethodChannel.Result) {
