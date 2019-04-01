@@ -39,11 +39,16 @@ class FlutterYoutubeViewController {
     await _channel.invokeMethod('seekTo', time);
   }
 
-  /**
-   * @param volumePercent Integer between 0 and 100
-   */
   Future<void> setVolume(int volumePercent) async {
     await _channel.invokeMethod('setVolume', volumePercent);
+  }
+
+  Future<void> setMute() async {
+    await _channel.invokeMethod('mute', null);
+  }
+
+  Future<void> setUnMute() async {
+    await _channel.invokeMethod('unMute', null);
   }
 
   Future<void> changeScaleMode(YoutubeScaleMode mode) async {

@@ -138,6 +138,14 @@ class FlutterYoutubeView(
             "pause" -> pause(result)
             "seekTo" -> seekTo(methodCall, result)
             "setVolume" -> setVolume(methodCall, result)
+            "mute" -> {
+                youtubePlayer?.setVolume(0)
+                result.success(null)
+            }
+            "unMute" -> {
+                youtubePlayer?.setVolume(100)
+                result.success(null)
+            }
             "scaleMode" -> {
                 changeScaleMode(methodCall.arguments as Int)
                 result.success(null)

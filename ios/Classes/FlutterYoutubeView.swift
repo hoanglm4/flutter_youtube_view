@@ -86,9 +86,16 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
                 self.player.seek(to: Int(second), allowSeekAhead: true)
             }
             result(nil)
+        case "mute":
+            print("mute is called")
+            self.player.mute()
+            result(nil)
+        case "unMute":
+            print("mute is called")
+            self.player.unMute()
+            result(nil)
         case "setVolume":
             print("setVolume is called")
-            let volume = call.arguments as! Float
             result(nil)
         case "scaleMode":
             let scaleMode = call.arguments as! Int
@@ -213,7 +220,6 @@ extension FlutterYoutubeView: YTSwiftyPlayerDelegate {
         player.seek(to: Int(startSeconds), allowSeekAhead: true)
         self.isPlayerReady = true
         channel.invokeMethod("onReady", arguments: nil)
-        channel.invokeMethod("onVideoDuration", arguments: player.duration)
     }
     
     func player(_ player: YTSwiftyPlayer, didUpdateCurrentTime currentTime: Double) {
@@ -223,6 +229,9 @@ extension FlutterYoutubeView: YTSwiftyPlayerDelegate {
     
     func player(_ player: YTSwiftyPlayer, didChangeState state: YTSwiftyPlayerState) {
         print("\(#function):\(state)")
+        if (state == YTSwiftyPlayerState.playing) {
+            channel.invokeMethod("onVideoDuration", arguments: player.duration)
+        }
         self.onStateChange(state: state)
     }
     

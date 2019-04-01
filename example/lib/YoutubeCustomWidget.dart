@@ -14,6 +14,7 @@ class _MyAppState extends State<YoutubeCustomWidget>
   String _playerState = "";
   FlutterYoutubeViewController _controller;
   YoutubeScaleMode _mode = YoutubeScaleMode.none;
+  bool _isMuted = false;
 
   @override
   void onCurrentSecond(double second) {
@@ -75,6 +76,17 @@ class _MyAppState extends State<YoutubeCustomWidget>
     });
   }
 
+  void _changeVolumeMode(bool isMuted) {
+    setState(() {
+      _isMuted = isMuted;
+      if (isMuted) {
+        _controller.setMute();
+      } else {
+        _controller.setUnMute();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,14 +114,7 @@ class _MyAppState extends State<YoutubeCustomWidget>
                   child: Text('Click reload video'),
                 ),
                 _buildControl(),
-                SliderVolume(
-                    volumeValue: _volume,
-                    onChanged: (double value) {
-                      setState(() {
-                        _volume = value;
-                        _setVolume(_volume.round());
-                      });
-                    }),
+                _buildVolume(),
                 _buildScaleModeRadioGroup()
               ],
             )
@@ -173,26 +178,32 @@ class _MyAppState extends State<YoutubeCustomWidget>
       ],
     );
   }
-}
 
-typedef void VolumeChangedCallback(double value);
-
-class SliderVolume extends StatelessWidget {
-  SliderVolume({this.volumeValue, this.onChanged});
-
-  final double volumeValue;
-  final VolumeChangedCallback onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: <Widget>[
-      Text(
-        'Volume ${volumeValue.round()}',
-        style: TextStyle(color: Colors.blue),
-      ),
-      Expanded(
-          child: Slider(
-              value: volumeValue, onChanged: onChanged, min: 0.0, max: 100))
-    ]);
+  Widget _buildVolume() {
+    return new Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        new Radio(
+          value: false,
+          groupValue: _isMuted,
+          onChanged: _changeVolumeMode,
+        ),
+        new Text(
+          'unMute',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: true,
+          groupValue: _isMuted,
+          onChanged: _changeVolumeMode,
+        ),
+        new Text(
+          'Mute',
+          style: TextStyle(color: Colors.blue),
+        )
+      ],
+    );
   }
 }
+
+
