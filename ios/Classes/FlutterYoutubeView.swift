@@ -8,19 +8,23 @@
 
 import Foundation
 import Flutter
-import XCDYouTubeKit
+import YoutubeKit
 import AVKit
 
+enum VideoScaleMode: Int {
+    case NONE = 0
+    case FIT_WIDTH = 1
+    case FIT_HEIGHT = 2
+}
 class FlutterYoutubeView: NSObject, FlutterPlatformView {
     private let frame: CGRect
     private let viewId: Int64
     private let registrar: FlutterPluginRegistrar
-    private let params: [String: Any]?
+    private let params: [String: Any]
     private let playerView: UIView
-    private let client = XCDYouTubeClient()
     private let channel: FlutterMethodChannel
-    private let player = ZHPlayer()
-    private var playerController: AVPlayerViewController?
+    private var player: YTSwiftyPlayer!
+    private var isPlayerReady = false
     
     init(_frame: CGRect,
          _viewId: Int64,
@@ -29,13 +33,14 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
         frame = _frame
         viewId = _viewId
         registrar = _registrar
-        params = _params
+        params = _params!
         playerView = UIView(frame: frame)
         channel = FlutterMethodChannel(
             name: "plugins.hoanglm.com/youtube_\(viewId)",
             binaryMessenger: registrar.messenger()
         )
         super.init()
+        self.initPlayer()
         channel.setMethodCallHandler { [weak self] (call, result) in
             guard let `self` = self else { return }
             `self`.handle(call, result: result)
@@ -47,20 +52,13 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     }
     
     private func dispose() {
-        let rootController = UIApplication.shared.keyWindow!.rootViewController!
-        rootController.childViewControllers.forEach{ child in
-            if (child == playerController) {
-                child.willMove(toParentViewController: nil)
-                child.view.removeFromSuperview()
-                child.removeFromParentViewController()
-            }
-        }
+        self.player.stopVideo()
+        self.player.clearVideo()
     }
     
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "initialization":
-            self.initPlayer()
             result(nil)
         case "loadOrCueVideo":
             print("loadOrCueVideo is called")
@@ -71,20 +69,41 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
             result(nil)
         case "play":
             print("play is called")
-            self.player.play()
+            if (self.isPlayerReady) {
+                self.player.playVideo()
+            }
             result(nil)
         case "pause":
             print("pause is called")
-            self.player.pause()
+            if (self.isPlayerReady) {
+                self.player.pauseVideo()
+            }
             result(nil)
         case "seekTo":
             print("seekTo is called")
-            player.seek(to: call.arguments as! Double)
+            if (self.isPlayerReady) {
+                let second = call.arguments as! Double
+                self.player.seek(to: Int(second), allowSeekAhead: true)
+            }
+            result(nil)
+        case "mute":
+            print("mute is called")
+            self.player.mute()
+            result(nil)
+        case "unMute":
+            print("mute is called")
+            self.player.unMute()
             result(nil)
         case "setVolume":
             print("setVolume is called")
-            let volume = call.arguments as! Float
-            player.volume = volume / 100
+            result(nil)
+        case "scaleMode":
+            let scaleMode = call.arguments as! Int
+            self.changeScaleMode(scaleMode: scaleMode)
+            UIView.animate(withDuration: 0.3) { [weak self] in
+                guard let `self` = self else { return }
+                self.playerView.layoutIfNeeded()
+            }
             result(nil)
         default:
             result(FlutterMethodNotImplemented)
@@ -92,88 +111,100 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     }
     
     private func initPlayer() {
-        self.player.delegate = self
-        guard let params = params else {
-            return
-        }
         print("params = \(params)")
         let videoId = params["videoId"] as? String
-        let startSeconds = (params["startSeconds"] as! Double)
         let showUI = params["showUI"] as! Bool
+        let scaleMode = params["scale_mode"] as? Int ?? 0
+        var playerVars: [VideoEmbedParameter]
         if (showUI) {
-            let avController = AVPlayerViewController()
-            playerController = avController
-            let rootController = UIApplication.shared.keyWindow!.rootViewController!
-            avController.player = player.view.player
-            
-            rootController.addChildViewController(avController)
-            avController.view.frame = self.playerView.bounds
-            self.playerView.addSubview(avController.view)
-            avController.didMove(toParentViewController: rootController)
+            playerVars = [
+                VideoEmbedParameter.playsInline(true),
+                VideoEmbedParameter.videoID(videoId ?? ""),
+                VideoEmbedParameter.loopVideo(false),
+                VideoEmbedParameter.showRelatedVideo(false),
+                VideoEmbedParameter.showInfo(true),
+                VideoEmbedParameter.autoplay(true)
+            ]
         } else {
-            self.playerView.addSubview(player.view)
+            playerVars = [
+                VideoEmbedParameter.playsInline(true),
+                VideoEmbedParameter.videoID(videoId ?? ""),
+                VideoEmbedParameter.loopVideo(false),
+                VideoEmbedParameter.showRelatedVideo(false),
+                VideoEmbedParameter.showInfo(false),
+                VideoEmbedParameter.showControls(VideoControlAppearance.hidden),
+                VideoEmbedParameter.autoplay(true)
+            ]
         }
-        if #available(iOS 9, *) {
-            player.view.fillToSuperview()
-        } else {
-            // Fallback on earlier versions
+        self.player = YTSwiftyPlayer(playerVars: playerVars)
+        self.player.autoplay = true
+        self.playerView.addSubview(self.player)
+        switch scaleMode {
+        case VideoScaleMode.FIT_WIDTH.rawValue:
+            self.player.fillWidthToSuperview(ratio: 9.0 / 16.0)
+        case VideoScaleMode.FIT_HEIGHT.rawValue:
+            self.player.fillHeightToSuperview(ratio: 16.0 / 9.0)
+        default:
+            self.player.fillToSuperview()
         }
-        channel.invokeMethod("onReady", arguments: nil)
-        if let videoId = videoId {
-            loadOrCueVideo(videoId: videoId, startSeconds: startSeconds)
+        self.player.delegate = self
+        self.player.loadPlayer()
+    }
+    
+    private func changeScaleMode(scaleMode: Int) {
+        self.player.removeAllAutoLayout()
+        switch scaleMode {
+        case VideoScaleMode.FIT_WIDTH.rawValue:
+            self.player.fillWidthToSuperview(ratio: 9.0 / 16.0)
+        case VideoScaleMode.FIT_HEIGHT.rawValue:
+            self.player.fillHeightToSuperview(ratio: 16.0 / 9.0)
+        default:
+            self.player.fillToSuperview()
         }
     }
     
     private func loadOrCueVideo(videoId: String, startSeconds: Double = 0.0) {
-        self.player.stop()
-        self.loadUrl(videoId: videoId) {[weak self] (url: URL?, error: Error? ) -> Void in
-            guard let `self` = self else { return }
-            if (error != nil) {
-                self.onError(error: .UNKNOWN)
-                return
-            }
-            guard let url = url else {
-                self.onError(error: .VIDEO_NOT_FOUND)
-                return
-            }
-            print("url when loadOrCueVideo called = \(url)")
-            self.player.loadVideo(url: url, startSeconds: startSeconds)
+        if (!self.isPlayerReady) {
+            return
         }
+        self.player.loadVideo(videoID: videoId, startSeconds: Int(startSeconds))
     }
-    
-    private func loadUrl(videoId: String, completionHandler:@escaping (URL?, Error?) -> Void) {
-        self.client.getVideoWithIdentifier(videoId) { (video: XCDYouTubeVideo?, error: Error?) -> Void in
-            if let error = error {
-                completionHandler(nil, error)
-                return
-            }
-            let streamURLs = video!.streamURLs
-            let url: URL = streamURLs[XCDYouTubeVideoQualityHTTPLiveStreaming]
-                ?? streamURLs[XCDYouTubeVideoQuality.HD720.rawValue]
-                ?? streamURLs[XCDYouTubeVideoQuality.medium360.rawValue]
-                ?? streamURLs[XCDYouTubeVideoQuality.small240.rawValue]!
-            completionHandler(url, nil)
-        }
-    }
-    
-    private func onStateChange(state: ZHPlayer.PlaybackState) {
+
+    private func onStateChange(state: YTSwiftyPlayerState) {
         var customState: PlayerState
         switch state {
-        case .pause:
-            customState = .PAUSED
+        case .cued:
+            customState = .VIDEO_CUED
+        case .ended:
+            customState = .ENDED
         case .playing:
             customState = .PLAYING
-        case .stopped:
+        case .paused:
+            customState = .PAUSED
+        case .buffering:
+            customState = .BUFFERING
+        case .unstarted:
             customState = .UNSTARTED
-        default:
-            customState = .UNKNOWN
         }
         print("state = \(state)")
         channel.invokeMethod("onStateChange", arguments: customState.rawValue)
     }
     
-    private func onError(error: PlayerError) {
-        channel.invokeMethod("onError", arguments: error.rawValue)
+    private func onError(error: YTSwiftyPlayerError) {
+        var playerError: PlayerError
+        switch error {
+        case .invalidURLRequest:
+            playerError = .INVALID_PARAMETER_IN_REQUEST
+        case .html5PlayerError:
+            playerError = .HTML_5_PLAYER
+        case .videoNotFound:
+            playerError = .VIDEO_NOT_FOUND
+        case .videoNotPermited:
+            playerError = .VIDEO_NOT_PLAYABLE_IN_EMBEDDED_PLAYER
+        case .videoLicenseError:
+            playerError = .VIDEO_NOT_PLAYABLE_IN_EMBEDDED_PLAYER
+        }
+        channel.invokeMethod("onError", arguments: playerError.rawValue)
     }
     
     deinit {
@@ -182,43 +213,50 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     }
 }
 
-extension FlutterYoutubeView: ZHPlayerDelegate {
-    func playerReady(_ player: ZHPlayer) {
-        print("ZHPlayer# playerReady")
+extension FlutterYoutubeView: YTSwiftyPlayerDelegate {
+    func playerReady(_ player: YTSwiftyPlayer) {
+        print(#function)
+        let startSeconds = (params["startSeconds"] as? Double ?? 0.0)
+        player.seek(to: Int(startSeconds), allowSeekAhead: true)
+        self.isPlayerReady = true
+        channel.invokeMethod("onReady", arguments: nil)
     }
     
-    func playerPlaybackStateDidChange(_ player: ZHPlayer) {
-        if player.playbackState == .fail {
-            onError(error: .UNKNOWN)
-            print("ZHPlayer \(player.error!)")
-            return
-        }
-        print("ZHPlayer# playerPlaybackStateDidChange# \(player.playbackState)")
-        onStateChange(state: player.playbackState)
+    func player(_ player: YTSwiftyPlayer, didUpdateCurrentTime currentTime: Double) {
+        print("\(#function):\(currentTime)")
+        channel.invokeMethod("onCurrentSecond", arguments: currentTime)
     }
     
-    func playerBufferingStateDidChange(_ player: ZHPlayer) {
-        print("ZHPlayer# playerBufferingStateDidChange# \(player.bufferingState)")
-        switch player.bufferingState {
-        case .playable:
-            channel.invokeMethod("onStateChange", arguments: PlayerState.BUFFERING.rawValue)
-        case .stalled:
+    func player(_ player: YTSwiftyPlayer, didChangeState state: YTSwiftyPlayerState) {
+        print("\(#function):\(state)")
+        if (state == YTSwiftyPlayerState.playing) {
             channel.invokeMethod("onVideoDuration", arguments: player.duration)
-        default:
-            break
         }
+        self.onStateChange(state: state)
     }
     
-    func playerBufferTimeDidChange(_ bufferTime: TimeInterval) {
-        print("ZHPlayer# playerBufferTimeDidChange#\(bufferTime)")
+    func player(_ player: YTSwiftyPlayer, didChangePlaybackRate playbackRate: Double) {
+        print("\(#function):\(playbackRate)")
     }
     
-    func playerCurrentTimeDidChange(_ player: ZHPlayer) {
-        channel.invokeMethod("onCurrentSecond", arguments: player.currentTime)
+    func player(_ player: YTSwiftyPlayer, didReceiveError error: YTSwiftyPlayerError) {
+        print("\(#function):\(error)")
+        self.onError(error: error)
     }
     
-    func playerPlaybackDidEnd(_ player: ZHPlayer) {
-        print("ZHPlayer# playerPlaybackDidEnd")
-        channel.invokeMethod("onStateChange", arguments: PlayerState.ENDED.rawValue)
+    func player(_ player: YTSwiftyPlayer, didChangeQuality quality: YTSwiftyVideoQuality) {
+        print("\(#function):\(quality)")
+    }
+    
+    func apiDidChange(_ player: YTSwiftyPlayer) {
+        print(#function)
+    }
+    
+    func youtubeIframeAPIReady(_ player: YTSwiftyPlayer) {
+        print(#function)
+    }
+    
+    func youtubeIframeAPIFailedToLoad(_ player: YTSwiftyPlayer) {
+        print(#function)
     }
 }

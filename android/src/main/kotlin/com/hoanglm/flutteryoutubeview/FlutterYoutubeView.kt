@@ -5,9 +5,10 @@ import android.app.Application
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -16,36 +17,61 @@ import io.flutter.plugin.platform.PlatformView
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.utils.loadOrCueVideo
 import java.util.concurrent.atomic.AtomicReference
 
 class FlutterYoutubeView(
-    context: Context,
+    private val context: Context,
     id: Int,
     private val params: HashMap<String, *>,
-    private val state: AtomicReference<State>,
+    private val state: AtomicReference<Lifecycle.Event>,
     private val registrar: PluginRegistry.Registrar
 ) :
     PlatformView,
     MethodChannel.MethodCallHandler,
-    Application.ActivityLifecycleCallbacks,
-    Lifecycle() {
+    Application.ActivityLifecycleCallbacks {
 
     private val TAG = "FlutterYoutubeView"
 
-    private val youtubePlayerView: YouTubePlayerView
+    private lateinit var youtubePlayerView: YouTubePlayerView
+    private lateinit var container: FLTPlayerView
+    private val view: FrameLayout
     private var youtubePlayer: YouTubePlayer? = null
     private val methodChannel: MethodChannel
     private val registrarActivityHashCode: Int
     private var disposed = false
 
     init {
-        youtubePlayerView = YouTubePlayerView(context)
+        val mode = params["scale_mode"] as? Int ?: 0
+        view = createView(mode = mode)
+        changeScaleMode(mode = mode)
         methodChannel = MethodChannel(registrar.messenger(), "plugins.hoanglm.com/youtube_$id")
         methodChannel.setMethodCallHandler(this)
         registrarActivityHashCode = registrar.activity().hashCode()
         registrar.activity().application.registerActivityLifecycleCallbacks(this)
         initYouTubePlayerView()
+    }
+
+    private fun createView(mode: Int = 0): FrameLayout {
+        val videoMode = VideoScaleMode.values().find { it.mode == mode }
+        container = FLTPlayerView(context).apply {
+            setVideoScaleMode(mode = videoMode!!)
+        }
+        container.apply {
+            youtubePlayerView = YouTubePlayerView(context)
+            val layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+            addView(youtubePlayerView, layoutParams)
+        }
+        return FrameLayout(context).apply {
+            val layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            layoutParams.gravity = Gravity.CENTER
+            addView(container, layoutParams)
+        }
     }
 
     private fun initYouTubePlayerView() {
@@ -64,7 +90,7 @@ class FlutterYoutubeView(
                 youtubePlayer = youTubePlayer
                 methodChannel.invokeMethod("onReady", null)
                 if (videoId != null) {
-                    youtubePlayer?.loadOrCueVideo(this@FlutterYoutubeView, videoId, startSeconds)
+                    loadOrCueVideo(videoId, startSeconds)
                 }
             }
 
@@ -90,81 +116,53 @@ class FlutterYoutubeView(
     }
 
     override fun getView(): View {
-        return youtubePlayerView
+        return view
     }
 
     override fun dispose() {
         disposed = true
+        youtubePlayerView.release()
         registrar.activity().application.unregisterActivityLifecycleCallbacks(this)
     }
 
     override fun onMethodCall(methodCall: MethodCall, result: MethodChannel.Result) {
         when (methodCall.method) {
+            "initialization" -> result.success(null)
             "loadOrCueVideo" -> loadOrCueVideo(methodCall, result)
             "play" -> play(result)
             "pause" -> pause(result)
             "seekTo" -> seekTo(methodCall, result)
             "setVolume" -> setVolume(methodCall, result)
+            "mute" -> {
+                youtubePlayer?.setVolume(0)
+                result.success(null)
+            }
+            "unMute" -> {
+                youtubePlayer?.setVolume(100)
+                result.success(null)
+            }
+            "scaleMode" -> {
+                changeScaleMode(methodCall.arguments as Int)
+                result.success(null)
+            }
             else -> result.notImplemented()
         }
-    }
-
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivityStarted(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivityResumed(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivityPaused(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-
-    override fun onActivityStopped(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivityDestroyed(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {
-    }
-
-    override fun addObserver(observer: LifecycleObserver) {
-    }
-
-    override fun removeObserver(observer: LifecycleObserver) {
-    }
-
-    override fun getCurrentState(): State {
-        return state.get()
     }
 
     private fun loadOrCueVideo(methodCall: MethodCall, result: MethodChannel.Result) {
         val params = methodCall.arguments as HashMap<String, *>
         val videoId = params["videoId"] as String
         val startSeconds = (params["startSeconds"] as? Double ?: 0.0).toFloat()
-        youtubePlayer?.loadOrCueVideo(this@FlutterYoutubeView, videoId, startSeconds)
+        loadOrCueVideo(videoId, startSeconds)
         result.success(null)
+    }
+
+    private fun loadOrCueVideo(videoId: String, startSeconds: Float) {
+        val canLoad = state.get() == Lifecycle.Event.ON_RESUME
+        if (canLoad)
+            youtubePlayer?.loadVideo(videoId, startSeconds)
+        else
+            youtubePlayer?.cueVideo(videoId, startSeconds)
     }
 
     private fun pause(result: MethodChannel.Result) {
@@ -192,6 +190,43 @@ class FlutterYoutubeView(
         result.success(null)
     }
 
+    private fun changeScaleMode(mode: Int) {
+        val videoMode = VideoScaleMode.values().find { it.mode == mode }
+        container.setVideoScaleMode(videoMode!!)
+        val playerHeight = when (videoMode) {
+            VideoScaleMode.NONE -> FrameLayout.LayoutParams.MATCH_PARENT
+            VideoScaleMode.FIT_WIDTH -> FrameLayout.LayoutParams.WRAP_CONTENT
+            VideoScaleMode.FIT_HEIGHT -> FrameLayout.LayoutParams.WRAP_CONTENT
+        }
+        val videoParams = youtubePlayerView.layoutParams.apply {
+            width = FrameLayout.LayoutParams.MATCH_PARENT
+            height = playerHeight
+        }
+        youtubePlayerView.layoutParams = videoParams
+        val containerWidth = when (videoMode) {
+            VideoScaleMode.NONE -> FrameLayout.LayoutParams.MATCH_PARENT
+            VideoScaleMode.FIT_WIDTH -> FrameLayout.LayoutParams.MATCH_PARENT
+            VideoScaleMode.FIT_HEIGHT -> FrameLayout.LayoutParams.WRAP_CONTENT
+        }
+        val containerHeight = when (videoMode) {
+            VideoScaleMode.NONE -> FrameLayout.LayoutParams.MATCH_PARENT
+            VideoScaleMode.FIT_WIDTH -> FrameLayout.LayoutParams.WRAP_CONTENT
+            VideoScaleMode.FIT_HEIGHT -> FrameLayout.LayoutParams.MATCH_PARENT
+        }
+        val containerGravity = when (videoMode) {
+            VideoScaleMode.NONE -> Gravity.CENTER
+            VideoScaleMode.FIT_WIDTH -> Gravity.CENTER_HORIZONTAL
+            VideoScaleMode.FIT_HEIGHT -> Gravity.CENTER_HORIZONTAL
+        }
+        val containerParams = (container.layoutParams as FrameLayout.LayoutParams).apply {
+            width = containerWidth
+            height = containerHeight
+            gravity = containerGravity
+        }
+        container.layoutParams = containerParams
+        view.requestLayout()
+    }
+
     private fun onStateChange(state: PlayerConstants.PlayerState) {
         Log.d(TAG, "state = $state")
         val customState = when (state) {
@@ -216,5 +251,47 @@ class FlutterYoutubeView(
             else -> PlayerError.UNKNOWN.value
         }
         methodChannel.invokeMethod("onError", customError)
+    }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+
+    }
+
+    override fun onActivityStarted(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+    }
+
+    override fun onActivityResumed(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+        youtubePlayer?.pause()
+    }
+
+
+    override fun onActivityStopped(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+    }
+
+    override fun onActivityDestroyed(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+    }
+
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {
     }
 }

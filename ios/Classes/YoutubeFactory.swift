@@ -8,14 +8,12 @@
 
 import Foundation
 import Flutter
-import AVKit
 
 class YoutubeFactory: NSObject, FlutterPlatformViewFactory {
     let registrar: FlutterPluginRegistrar
     init(_registrar: FlutterPluginRegistrar) {
         registrar = _registrar
         super.init()
-        configureAudioSession()
     }
     
     func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
@@ -27,14 +25,5 @@ class YoutubeFactory: NSObject, FlutterPlatformViewFactory {
                                   _viewId: viewId,
                                   _params: args as? Dictionary<String, Any> ?? nil,
                                   _registrar: registrar)
-    }
-    
-    private func configureAudioSession() {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: [])
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch {
-            print(error)
-        }
     }
 }

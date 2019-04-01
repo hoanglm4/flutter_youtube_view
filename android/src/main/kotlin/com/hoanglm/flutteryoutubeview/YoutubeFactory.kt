@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 class YoutubeFactory(
     private val registrar: PluginRegistry.Registrar,
-    private val state: AtomicReference<Lifecycle.State>
+    private val state: AtomicReference<Lifecycle.Event>
 ) :
     PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 

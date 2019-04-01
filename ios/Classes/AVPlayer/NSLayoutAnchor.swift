@@ -25,6 +25,28 @@ public extension UIView {
     }
     
     @available(iOS 9, *)
+    public func fillHeightToSuperview(ratio: CGFloat) {
+        translatesAutoresizingMaskIntoConstraints = false
+        anchorCenterXToSuperview()
+        if let superview = superview {
+            topAnchor.constraint(equalTo: superview.topAnchor).isActive = true
+            bottomAnchor.constraint(equalTo: superview.bottomAnchor).isActive = true
+        }
+        widthAnchor.constraint(equalTo: self.heightAnchor, multiplier: ratio).isActive = true
+    }
+    
+    @available(iOS 9, *)
+    public func fillWidthToSuperview(ratio: CGFloat) {
+        translatesAutoresizingMaskIntoConstraints = false
+        if let superview = superview {
+            topAnchor.constraint(equalTo: superview.topAnchor).isActive = true
+            leftAnchor.constraint(equalTo: superview.leftAnchor).isActive = true
+            rightAnchor.constraint(equalTo: superview.rightAnchor).isActive = true
+        }
+        heightAnchor.constraint(equalTo: self.widthAnchor, multiplier: ratio).isActive = true
+    }
+    
+    @available(iOS 9, *)
     @discardableResult
     public func anchor(
         top: NSLayoutYAxisAnchor? = nil,
@@ -95,6 +117,9 @@ public extension UIView {
     
     @available(iOS 6.0, *)
     public func removeAllAutoLayout() {
+        for constraint in self.constraints {
+            constraint.isActive = false
+        }
         guard let superview = superview else { return }
         removeFromSuperview()
         superview.addSubview(self)

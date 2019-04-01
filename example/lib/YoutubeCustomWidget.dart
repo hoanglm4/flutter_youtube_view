@@ -13,10 +13,12 @@ class _MyAppState extends State<YoutubeCustomWidget>
   double _currentVideoSecond = 0.0;
   String _playerState = "";
   FlutterYoutubeViewController _controller;
+  YoutubeScaleMode _mode = YoutubeScaleMode.none;
+  bool _isMuted = false;
 
   @override
   void onCurrentSecond(double second) {
-    print("onCurrentSecond second = $second");
+   // print("onCurrentSecond second = $second");
     _currentVideoSecond = second;
   }
 
@@ -67,6 +69,24 @@ class _MyAppState extends State<YoutubeCustomWidget>
     _controller.setVolume(volumePercent);
   }
 
+  void _changeScaleMode(YoutubeScaleMode mode) {
+    setState(() {
+        _mode = mode;
+        _controller.changeScaleMode(mode);
+    });
+  }
+
+  void _changeVolumeMode(bool isMuted) {
+    setState(() {
+      _isMuted = isMuted;
+      if (isMuted) {
+        _controller.setMute();
+      } else {
+        _controller.setUnMute();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,11 +97,12 @@ class _MyAppState extends State<YoutubeCustomWidget>
           children: <Widget>[
             Container(
                 child: FlutterYoutubeView(
-              onViewCreated: _onYoutubeCreated,
-              listener: this,
-              params: YoutubeParam(
-                  videoId: 'gcj2RUWQZ60', showUI: false, startSeconds: 0.0),
-            )),
+                  scaleMode: _mode,
+                  onViewCreated: _onYoutubeCreated,
+                  listener: this,
+                  params: YoutubeParam(
+                      videoId: 'gcj2RUWQZ60', showUI: false, startSeconds: 0.0),
+                )),
             Column(
               children: <Widget>[
                 Text(
@@ -92,53 +113,97 @@ class _MyAppState extends State<YoutubeCustomWidget>
                   onPressed: _loadOrCueVideo,
                   child: Text('Click reload video'),
                 ),
-                RaisedButton(
-                  onPressed: _play,
-                  child: Text('Play'),
-                ),
-                RaisedButton(
-                  onPressed: _pause,
-                  child: Text('Pause'),
-                ),
-                RaisedButton(
-                  onPressed: () {
-                    _seekTo(20.0);
-                  },
-                  child: Text('seekTo 20 seconds'),
-                ),
-                SliderVolume(
-                    volumeValue: _volume,
-                    onChanged: (double value) {
-                      setState(() {
-                        _volume = value;
-                        _setVolume(_volume.round());
-                      });
-                    })
+                _buildControl(),
+                _buildVolume(),
+                _buildScaleModeRadioGroup()
               ],
             )
           ],
         ));
   }
-}
 
-typedef void VolumeChangedCallback(double value);
+  Widget _buildControl() {
+    return new Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        RaisedButton(
+          onPressed: _play,
+          child: Text('Play'),
+        ),
+        RaisedButton(
+          onPressed: _pause,
+          child: Text('Pause'),
+        ),
+        RaisedButton(
+          onPressed: () {
+            _seekTo(20.0);
+          },
+          child: Text('seekTo 20s'),
+        )
+      ],
+    );
+  }
 
-class SliderVolume extends StatelessWidget {
-  SliderVolume({this.volumeValue, this.onChanged});
+  Widget _buildScaleModeRadioGroup() {
+    return new Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        new Radio(
+          value: YoutubeScaleMode.none,
+          groupValue: _mode,
+          onChanged: _changeScaleMode,
+        ),
+        new Text(
+          'none',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: YoutubeScaleMode.fitWidth,
+          groupValue: _mode,
+          onChanged: _changeScaleMode,
+        ),
+        new Text(
+          'fitWidth',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: YoutubeScaleMode.fitHeight,
+          groupValue: _mode,
+          onChanged: _changeScaleMode,
+        ),
+        new Text(
+          'fitHeight',
+          style: TextStyle(color: Colors.blue),
+        ),
+      ],
+    );
+  }
 
-  final double volumeValue;
-  final VolumeChangedCallback onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: <Widget>[
-      Text(
-        'Volume ${volumeValue.round()}',
-        style: TextStyle(color: Colors.blue),
-      ),
-      Expanded(
-          child: Slider(
-              value: volumeValue, onChanged: onChanged, min: 0.0, max: 100))
-    ]);
+  Widget _buildVolume() {
+    return new Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        new Radio(
+          value: false,
+          groupValue: _isMuted,
+          onChanged: _changeVolumeMode,
+        ),
+        new Text(
+          'unMute',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: true,
+          groupValue: _isMuted,
+          onChanged: _changeVolumeMode,
+        ),
+        new Text(
+          'Mute',
+          style: TextStyle(color: Colors.blue),
+        )
+      ],
+    );
   }
 }
+
+
