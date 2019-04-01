@@ -11,14 +11,20 @@ import Flutter
 import YoutubeKit
 import AVKit
 
+enum VideoScaleMode: Int {
+    case NONE = 0
+    case FIT_WIDTH = 1
+    case FIT_HEIGHT = 2
+}
 class FlutterYoutubeView: NSObject, FlutterPlatformView {
     private let frame: CGRect
     private let viewId: Int64
     private let registrar: FlutterPluginRegistrar
-    private let params: [String: Any]?
+    private let params: [String: Any]
     private let playerView: UIView
     private let channel: FlutterMethodChannel
-    private var player: YTSwiftyPlayer?
+    private var player: YTSwiftyPlayer!
+    private var isPlayerReady = false
     
     init(_frame: CGRect,
          _viewId: Int64,
@@ -27,13 +33,14 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
         frame = _frame
         viewId = _viewId
         registrar = _registrar
-        params = _params
+        params = _params!
         playerView = UIView(frame: frame)
         channel = FlutterMethodChannel(
             name: "plugins.hoanglm.com/youtube_\(viewId)",
             binaryMessenger: registrar.messenger()
         )
         super.init()
+        self.initPlayer()
         channel.setMethodCallHandler { [weak self] (call, result) in
             guard let `self` = self else { return }
             `self`.handle(call, result: result)
@@ -45,14 +52,13 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     }
     
     private func dispose() {
-        self.player?.stopVideo()
-        self.player?.clearVideo()
+        self.player.stopVideo()
+        self.player.clearVideo()
     }
     
     func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "initialization":
-            self.initPlayer()
             result(nil)
         case "loadOrCueVideo":
             print("loadOrCueVideo is called")
@@ -63,20 +69,34 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
             result(nil)
         case "play":
             print("play is called")
-            self.player?.playVideo()
+            if (self.isPlayerReady) {
+                self.player.playVideo()
+            }
             result(nil)
         case "pause":
             print("pause is called")
-            self.player?.pauseVideo()
+            if (self.isPlayerReady) {
+                self.player.pauseVideo()
+            }
             result(nil)
         case "seekTo":
             print("seekTo is called")
-            let second = call.arguments as! Double
-            self.player?.seek(to: Int(second), allowSeekAhead: true)
+            if (self.isPlayerReady) {
+                let second = call.arguments as! Double
+                self.player.seek(to: Int(second), allowSeekAhead: true)
+            }
             result(nil)
         case "setVolume":
             print("setVolume is called")
             let volume = call.arguments as! Float
+            result(nil)
+        case "scaleMode":
+            let scaleMode = call.arguments as! Int
+            self.changeScaleMode(scaleMode: scaleMode)
+            UIView.animate(withDuration: 0.3) { [weak self] in
+                guard let `self` = self else { return }
+                self.playerView.layoutIfNeeded()
+            }
             result(nil)
         default:
             result(FlutterMethodNotImplemented)
@@ -84,12 +104,10 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     }
     
     private func initPlayer() {
-        guard let params = params else {
-            return
-        }
         print("params = \(params)")
         let videoId = params["videoId"] as? String
         let showUI = params["showUI"] as! Bool
+        let scaleMode = params["scale_mode"] as? Int ?? 0
         var playerVars: [VideoEmbedParameter]
         if (showUI) {
             playerVars = [
@@ -111,16 +129,38 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
                 VideoEmbedParameter.autoplay(true)
             ]
         }
-        let _player = YTSwiftyPlayer(playerVars: playerVars)
-        _player.autoplay = true
-        self.playerView.addSubview(_player)
-        _player.fillToSuperview()
-        _player.delegate = self
-        _player.loadPlayer()
+        self.player = YTSwiftyPlayer(playerVars: playerVars)
+        self.player.autoplay = true
+        self.playerView.addSubview(self.player)
+        switch scaleMode {
+        case VideoScaleMode.FIT_WIDTH.rawValue:
+            self.player.fillWidthToSuperview(ratio: 9.0 / 16.0)
+        case VideoScaleMode.FIT_HEIGHT.rawValue:
+            self.player.fillHeightToSuperview(ratio: 16.0 / 9.0)
+        default:
+            self.player.fillToSuperview()
+        }
+        self.player.delegate = self
+        self.player.loadPlayer()
+    }
+    
+    private func changeScaleMode(scaleMode: Int) {
+        self.player.removeAllAutoLayout()
+        switch scaleMode {
+        case VideoScaleMode.FIT_WIDTH.rawValue:
+            self.player.fillWidthToSuperview(ratio: 9.0 / 16.0)
+        case VideoScaleMode.FIT_HEIGHT.rawValue:
+            self.player.fillHeightToSuperview(ratio: 16.0 / 9.0)
+        default:
+            self.player.fillToSuperview()
+        }
     }
     
     private func loadOrCueVideo(videoId: String, startSeconds: Double = 0.0) {
-        self.player?.loadVideo(videoID: videoId, startSeconds: Int(startSeconds))
+        if (!self.isPlayerReady) {
+            return
+        }
+        self.player.loadVideo(videoID: videoId, startSeconds: Int(startSeconds))
     }
 
     private func onStateChange(state: YTSwiftyPlayerState) {
@@ -169,12 +209,9 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
 extension FlutterYoutubeView: YTSwiftyPlayerDelegate {
     func playerReady(_ player: YTSwiftyPlayer) {
         print(#function)
-        if let params = self.params {
-            let startSeconds = (params["startSeconds"] as? Double ?? 0.0)
-            player.seek(to: Int(startSeconds), allowSeekAhead: true)
-        }
-        
-        self.player = player
+        let startSeconds = (params["startSeconds"] as? Double ?? 0.0)
+        player.seek(to: Int(startSeconds), allowSeekAhead: true)
+        self.isPlayerReady = true
         channel.invokeMethod("onReady", arguments: nil)
         channel.invokeMethod("onVideoDuration", arguments: player.duration)
     }
