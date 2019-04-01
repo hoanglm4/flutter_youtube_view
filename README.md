@@ -6,6 +6,8 @@ This plugin using:
 * Android: https://github.com/PierfrancescoSoffritti/android-youtube-player 
 * iOS: https://github.com/rinov/YoutubeKit
 
+APK sample: https://github.com/hoanglm4/flutter_youtube_view/tree/master/example/android/APK
+
 ## How to Use
 
 #### 1\. Depend
