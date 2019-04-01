@@ -1,14 +1,10 @@
 # flutter_youtube_view
 
-This plugin provides YoutubeView widget.
+This plugin provides Inlining YouTube player. To interact with YouTube the library uses the [Frame Player API](https://developers.google.com/youtube/iframe_api_reference), inside of a WebView (Android), WKWebview (iOS). Therefore the YouTube app is not required on the user's device and there are no issues with YouTube Terms of Service.
 
-Supported
-* Android: https://github.com/PierfrancescoSoffritti/android-youtube-player
-* iOS: https://github.com/0xced/XCDYouTubeKit
-
-## Status Develop
-* Android: DONE
-* iOS: DONE
+This plugin using:
+* Android: https://github.com/PierfrancescoSoffritti/android-youtube-player 
+* iOS: https://github.com/rinov/YoutubeKit
 
 ## How to Use
 
@@ -18,7 +14,7 @@ Add this to you package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  flutter_youtube_view: ^1.1.0
+  flutter_youtube_view: ^1.1.4
 ```
 
 #### 2\. Install
@@ -44,21 +40,33 @@ import 'package:flutter_youtube_view/flutter_youtube_view.dart';
           child: FlutterYoutubeView(
                 onViewCreated: _onYoutubeCreated,
                 listener: this,
+                scaleMode: YoutubeScaleMode.none, // <option> fitWidth, fitHeight
                 params: YoutubeParam(
                       videoId: 'gcj2RUWQZ60', 
                       showUI: false, 
-                      startSeconds: 0.0),
+                      startSeconds: 0.0) // <option>
                 )
             ),
 ```
-## Salient Features
+## Features
+
+### Call IFrame API during playback
 - play()
 - pause()
 - loadOrCueVideo()
 - seekTo()
-- setVolume()
-- Player listener
-* State: UNKNOWN, UNSTARTED, ENDED, PLAYING, PAUSED, BUFFERING, VIDEO_CUED
-* Status: ready, error
-* Duration
-* CurrentTime
+- setVolume() only Android
+- mute()
+- unMute()
+### PLAYER callback
+```dart
+  void onReady();
+
+  void onStateChange(String state); // UNKNOWN, UNSTARTED, ENDED, PLAYING, PAUSED, BUFFERING, VIDEO_CUED
+
+  void onError(String error); // INVALID_PARAMETER_IN_REQUEST, HTML_5_PLAYER, VIDEO_NOT_FOUND, VIDEO_NOT_PLAYABLE_IN_EMBEDDED_PLAYER
+
+  void onVideoDuration(double duration);
+
+  void onCurrentSecond(double second);
+```
