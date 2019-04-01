@@ -9,7 +9,6 @@ import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -18,20 +17,18 @@ import io.flutter.plugin.platform.PlatformView
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.utils.loadOrCueVideo
 import java.util.concurrent.atomic.AtomicReference
 
 class FlutterYoutubeView(
     private val context: Context,
     id: Int,
     private val params: HashMap<String, *>,
-    private val state: AtomicReference<State>,
+    private val state: AtomicReference<Lifecycle.Event>,
     private val registrar: PluginRegistry.Registrar
 ) :
     PlatformView,
     MethodChannel.MethodCallHandler,
-    Application.ActivityLifecycleCallbacks,
-    Lifecycle() {
+    Application.ActivityLifecycleCallbacks {
 
     private val TAG = "FlutterYoutubeView"
 
@@ -88,13 +85,12 @@ class FlutterYoutubeView(
             controller.showVideoTitle(false)
             controller.showYouTubeButton(false)
         }
-        this.addObserver(youtubePlayerView)
         youtubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
                 youtubePlayer = youTubePlayer
                 methodChannel.invokeMethod("onReady", null)
                 if (videoId != null) {
-                    youtubePlayer?.loadOrCueVideo(this@FlutterYoutubeView, videoId, startSeconds)
+                    loadOrCueVideo(videoId, startSeconds)
                 }
             }
 
@@ -125,9 +121,8 @@ class FlutterYoutubeView(
 
     override fun dispose() {
         disposed = true
-        registrar.activity().application.unregisterActivityLifecycleCallbacks(this)
         youtubePlayerView.release()
-        removeObserver(youtubePlayerView)
+        registrar.activity().application.unregisterActivityLifecycleCallbacks(this)
     }
 
     override fun onMethodCall(methodCall: MethodCall, result: MethodChannel.Result) {
@@ -154,62 +149,20 @@ class FlutterYoutubeView(
         }
     }
 
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivityStarted(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivityResumed(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivityPaused(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-
-    override fun onActivityStopped(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivityDestroyed(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode || disposed) {
-            return
-        }
-    }
-
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {
-    }
-
-    override fun addObserver(observer: LifecycleObserver) {
-    }
-
-    override fun removeObserver(observer: LifecycleObserver) {
-    }
-
-    override fun getCurrentState(): State {
-        return state.get()
-    }
-
     private fun loadOrCueVideo(methodCall: MethodCall, result: MethodChannel.Result) {
         val params = methodCall.arguments as HashMap<String, *>
         val videoId = params["videoId"] as String
         val startSeconds = (params["startSeconds"] as? Double ?: 0.0).toFloat()
-        youtubePlayer?.loadOrCueVideo(this@FlutterYoutubeView, videoId, startSeconds)
+        loadOrCueVideo(videoId, startSeconds)
         result.success(null)
+    }
+
+    private fun loadOrCueVideo(videoId: String, startSeconds: Float) {
+        val canLoad = state.get() == Lifecycle.Event.ON_RESUME
+        if (canLoad)
+            youtubePlayer?.loadVideo(videoId, startSeconds)
+        else
+            youtubePlayer?.cueVideo(videoId, startSeconds)
     }
 
     private fun pause(result: MethodChannel.Result) {
@@ -298,5 +251,47 @@ class FlutterYoutubeView(
             else -> PlayerError.UNKNOWN.value
         }
         methodChannel.invokeMethod("onError", customError)
+    }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+
+    }
+
+    override fun onActivityStarted(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+    }
+
+    override fun onActivityResumed(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+        youtubePlayer?.pause()
+    }
+
+
+    override fun onActivityStopped(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+    }
+
+    override fun onActivityDestroyed(activity: Activity) {
+        if (activity.hashCode() != registrarActivityHashCode && disposed) {
+            return
+        }
+    }
+
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {
     }
 }

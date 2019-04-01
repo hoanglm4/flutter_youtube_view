@@ -8,7 +8,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar
 import java.util.concurrent.atomic.AtomicReference
 
 class FlutterYoutubeViewPlugin(registrar: Registrar): Application.ActivityLifecycleCallbacks {
-    private val state: AtomicReference<Lifecycle.State> = AtomicReference(Lifecycle.State.INITIALIZED)
+    private val state: AtomicReference<Lifecycle.Event> = AtomicReference(Lifecycle.Event.ON_CREATE)
     private val registrarActivityHashCode: Int
 
     init {
@@ -19,27 +19,28 @@ class FlutterYoutubeViewPlugin(registrar: Registrar): Application.ActivityLifecy
         if (activity.hashCode() != registrarActivityHashCode) {
             return
         }
-        state.set(Lifecycle.State.CREATED)
+        state.set(Lifecycle.Event.ON_CREATE)
     }
 
     override fun onActivityStarted(activity: Activity) {
         if (activity.hashCode() != registrarActivityHashCode) {
             return
         }
-        state.set(Lifecycle.State.STARTED)
+        state.set(Lifecycle.Event.ON_START)
     }
 
     override fun onActivityResumed(activity: Activity) {
         if (activity.hashCode() != registrarActivityHashCode) {
             return
         }
-        state.set(Lifecycle.State.RESUMED)
+        state.set(Lifecycle.Event.ON_RESUME)
     }
 
     override fun onActivityPaused(activity: Activity) {
         if (activity.hashCode() != registrarActivityHashCode) {
             return
         }
+        state.set(Lifecycle.Event.ON_PAUSE)
     }
 
 
@@ -47,13 +48,14 @@ class FlutterYoutubeViewPlugin(registrar: Registrar): Application.ActivityLifecy
         if (activity.hashCode() != registrarActivityHashCode) {
             return
         }
+        state.set(Lifecycle.Event.ON_STOP)
     }
 
     override fun onActivityDestroyed(activity: Activity) {
         if (activity.hashCode() != registrarActivityHashCode) {
             return
         }
-        state.set(Lifecycle.State.DESTROYED)
+        state.set(Lifecycle.Event.ON_DESTROY)
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {
