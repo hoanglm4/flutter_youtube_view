@@ -34,6 +34,7 @@ Import in Dart code:
 ```dart
 import 'package:flutter_youtube_view/flutter_youtube_view.dart';
 ```
+Currently apps need to opt-in for the UIViews embedding preview on iOS by adding a boolean property to the Info.plist (key=io.flutter.embedded_views_preview value=YES).
 
 #### 4\. Using Youtube View
          
