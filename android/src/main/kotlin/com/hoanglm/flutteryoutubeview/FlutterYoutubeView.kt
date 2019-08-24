@@ -76,9 +76,10 @@ class FlutterYoutubeView(
 
     private fun initYouTubePlayerView() {
         Log.d(TAG, "params = $params")
-        val videoId = params["videoId"] as? String
-        val startSeconds = (params["startSeconds"] as Double).toFloat()
-        val showUI = params["showUI"] as Boolean
+        val videoId = params[Options.VIDEO_ID.value] as? String
+        val startSeconds = (params[Options.START_SECOND.value] as Double).toFloat()
+        val showUI = params[Options.SHOW_UI.value] as Boolean
+        val autoPlay = params[Options.AUTO_PLAY.value] as? Boolean ?: true
         val controller = youtubePlayerView.getPlayerUiController()
         if (!showUI) {
             controller.showUi(false)
@@ -90,7 +91,7 @@ class FlutterYoutubeView(
                 youtubePlayer = youTubePlayer
                 methodChannel.invokeMethod("onReady", null)
                 if (videoId != null) {
-                    loadOrCueVideo(videoId, startSeconds)
+                    loadOrCueVideo(videoId, startSeconds, autoPlay)
                 }
             }
 
@@ -151,14 +152,15 @@ class FlutterYoutubeView(
 
     private fun loadOrCueVideo(methodCall: MethodCall, result: MethodChannel.Result) {
         val params = methodCall.arguments as HashMap<String, *>
-        val videoId = params["videoId"] as String
-        val startSeconds = (params["startSeconds"] as? Double ?: 0.0).toFloat()
-        loadOrCueVideo(videoId, startSeconds)
+        val videoId = params[Options.VIDEO_ID.value] as String
+        val startSeconds = (params[Options.START_SECOND.value] as? Double ?: 0.0).toFloat()
+        val autoPlay = params[Options.AUTO_PLAY.value] as? Boolean ?: true
+        loadOrCueVideo(videoId, startSeconds, autoPlay)
         result.success(null)
     }
 
-    private fun loadOrCueVideo(videoId: String, startSeconds: Float) {
-        val canLoad = state.get() == Lifecycle.Event.ON_RESUME
+    private fun loadOrCueVideo(videoId: String, startSeconds: Float, autoPlay: Boolean = true) {
+        val canLoad = state.get() == Lifecycle.Event.ON_RESUME && autoPlay
         if (canLoad)
             youtubePlayer?.loadVideo(videoId, startSeconds)
         else

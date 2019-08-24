@@ -65,7 +65,8 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
             let params = call.arguments as! Dictionary<String, Any>
             let videoId = params["videoId"] as! String
             let startSeconds = params["startSeconds"] as? Double ?? 0.0
-            loadOrCueVideo(videoId: videoId, startSeconds: startSeconds)
+            let autoPlay = params["autoPlay"] as? Bool ?? true
+            loadOrCueVideo(videoId: videoId, startSeconds: startSeconds, autoPlay: autoPlay)
             result(nil)
         case "play":
             print("play is called")
@@ -112,32 +113,33 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
     
     private func initPlayer() {
         print("params = \(params)")
-        let videoId = params["videoId"] as? String
+        let videoId = params["videoId"] as? String ?? ""
         let showUI = params["showUI"] as! Bool
         let scaleMode = params["scale_mode"] as? Int ?? 0
+        let autoPlay = params["autoPlay"] as? Bool ?? true
         var playerVars: [VideoEmbedParameter]
         if (showUI) {
             playerVars = [
                 VideoEmbedParameter.playsInline(true),
-                VideoEmbedParameter.videoID(videoId ?? ""),
+                VideoEmbedParameter.videoID(videoId),
                 VideoEmbedParameter.loopVideo(false),
                 VideoEmbedParameter.showRelatedVideo(false),
                 VideoEmbedParameter.showInfo(true),
-                VideoEmbedParameter.autoplay(true)
+                VideoEmbedParameter.autoplay(autoPlay)
             ]
         } else {
             playerVars = [
                 VideoEmbedParameter.playsInline(true),
-                VideoEmbedParameter.videoID(videoId ?? ""),
+                VideoEmbedParameter.videoID(videoId),
                 VideoEmbedParameter.loopVideo(false),
                 VideoEmbedParameter.showRelatedVideo(false),
                 VideoEmbedParameter.showInfo(false),
                 VideoEmbedParameter.showControls(VideoControlAppearance.hidden),
-                VideoEmbedParameter.autoplay(true)
+                VideoEmbedParameter.autoplay(autoPlay)
             ]
         }
         self.player = YTSwiftyPlayer(playerVars: playerVars)
-        self.player.autoplay = true
+        self.player.autoplay = autoPlay
         self.playerView.addSubview(self.player)
         switch scaleMode {
         case VideoScaleMode.FIT_WIDTH.rawValue:
@@ -163,11 +165,15 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
         }
     }
     
-    private func loadOrCueVideo(videoId: String, startSeconds: Double = 0.0) {
+    private func loadOrCueVideo(videoId: String, startSeconds: Double = 0.0, autoPlay: Bool = true) {
         if (!self.isPlayerReady) {
             return
         }
-        self.player.loadVideo(videoID: videoId, startSeconds: Int(startSeconds))
+        if (autoPlay) {
+            self.player.loadVideo(videoID: videoId, startSeconds: Int(startSeconds))
+        } else {
+            self.player.cueVideo(videoID: videoId, startSeconds: Int(startSeconds))
+        }
     }
 
     private func onStateChange(state: YTSwiftyPlayerState) {
@@ -216,8 +222,6 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
 extension FlutterYoutubeView: YTSwiftyPlayerDelegate {
     func playerReady(_ player: YTSwiftyPlayer) {
         print(#function)
-        let startSeconds = (params["startSeconds"] as? Double ?? 0.0)
-        player.seek(to: Int(startSeconds), allowSeekAhead: true)
         self.isPlayerReady = true
         channel.invokeMethod("onReady", arguments: nil)
     }

@@ -101,7 +101,11 @@ class _MyAppState extends State<YoutubeCustomWidget>
                   onViewCreated: _onYoutubeCreated,
                   listener: this,
                   params: YoutubeParam(
-                      videoId: 'gcj2RUWQZ60', showUI: false, startSeconds: 0.0),
+                      videoId: 'gcj2RUWQZ60',
+                      showUI: false,
+                      startSeconds: 0.0,
+                      autoPlay: false,
+                  ),
                 )),
             Column(
               children: <Widget>[
