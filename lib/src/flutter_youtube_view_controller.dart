@@ -18,11 +18,14 @@ class FlutterYoutubeViewController {
     await _channel.invokeMethod('initialization');
   }
 
-  Future<void> loadOrCueVideo(String videoId, double startSeconds) async {
+  Future<void> loadOrCueVideo(String videoId,
+      double startSeconds,
+      { bool autoPlay = true }) async {
     assert(videoId != null);
     var params = <String, dynamic>{
       "videoId": videoId,
-      "startSeconds": startSeconds
+      "startSeconds": startSeconds,
+      "autoPlay": autoPlay
     };
     await _channel.invokeMethod('loadOrCueVideo', params);
   }

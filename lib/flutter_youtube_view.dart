@@ -59,7 +59,8 @@ class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
           "scale_mode": widget.scaleMode.index,
           "videoId": widget.params.videoId,
           "showUI": widget.params.showUI,
-          "startSeconds": widget.params.startSeconds
+          "startSeconds": widget.params.startSeconds,
+          "autoPlay": widget.params.autoPlay,
         },
         creationParamsCodec: StandardMessageCodec(),
       );
@@ -70,7 +71,8 @@ class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
         creationParams: <String, dynamic>{
           "videoId": widget.params.videoId,
           "showUI": widget.params.showUI,
-          "startSeconds": widget.params.startSeconds
+          "startSeconds": widget.params.startSeconds,
+          "autoPlay": widget.params.autoPlay,
         },
         creationParamsCodec: StandardMessageCodec(),
       );
