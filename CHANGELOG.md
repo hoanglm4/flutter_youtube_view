@@ -12,3 +12,6 @@ https://github.com/hoanglm4/flutter_youtube_view/issues/1
 https://github.com/hoanglm4/flutter_youtube_view/issues/8
 Fixed:
 Android: Video play in background
+
+## 1.1.5
+https://github.com/hoanglm4/flutter_youtube_view/issues/13

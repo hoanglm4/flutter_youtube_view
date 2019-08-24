@@ -47,7 +47,8 @@ Currently apps need to opt-in for the UIViews embedding preview on iOS by adding
                 params: YoutubeParam(
                       videoId: 'gcj2RUWQZ60', 
                       showUI: false, 
-                      startSeconds: 0.0) // <option>
+                      startSeconds: 0.0, // <option>
+                      autoPlay: false) // <option>
                 )
             ),
 ```
