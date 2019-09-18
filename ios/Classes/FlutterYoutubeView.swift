@@ -87,6 +87,13 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
                 self.player.seek(to: Int(second), allowSeekAhead: true)
             }
             result(nil)
+        case "setPlaybackRate":
+            print("setPlaybackRate is called")
+            if (self.isPlayerReady) {
+                let rate = call.arguments as! Double
+                self.player.setPlaybackRate(rate)
+            }
+            result(nil)
         case "mute":
             print("mute is called")
             self.player.mute()
