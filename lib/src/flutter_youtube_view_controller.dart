@@ -42,6 +42,10 @@ class FlutterYoutubeViewController {
     await _channel.invokeMethod('seekTo', time);
   }
 
+  Future<void> setPlaybackRate(double rate) async {
+    await _channel.invokeMethod('setPlaybackRate', rate);
+  }
+
   Future<void> setVolume(int volumePercent) async {
     await _channel.invokeMethod('setVolume', volumePercent);
   }
