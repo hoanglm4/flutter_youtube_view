@@ -16,7 +16,7 @@ Add this to you package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  flutter_youtube_view: ^1.1.5
+  flutter_youtube_view: ^1.1.6
 ```
 
 #### 2\. Install
@@ -62,6 +62,7 @@ Currently apps need to opt-in for the UIViews embedding preview on iOS by adding
 - setVolume() only Android
 - mute()
 - unMute()
+- setPlaybackRate(PlaybackRate rate)
 ### PLAYER callback
 ```dart
   void onReady();
