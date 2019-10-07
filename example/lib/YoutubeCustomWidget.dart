@@ -14,6 +14,7 @@ class _MyAppState extends State<YoutubeCustomWidget>
   String _playerState = "";
   FlutterYoutubeViewController _controller;
   YoutubeScaleMode _mode = YoutubeScaleMode.none;
+  PlaybackRate _playbackRate = PlaybackRate.RATE_1;
   bool _isMuted = false;
 
   @override
@@ -87,6 +88,13 @@ class _MyAppState extends State<YoutubeCustomWidget>
     });
   }
 
+  void _changePlaybackRate(PlaybackRate playbackRate) {
+    setState(() {
+      _playbackRate = playbackRate;
+      _controller.setPlaybackRate(playbackRate);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,7 +127,8 @@ class _MyAppState extends State<YoutubeCustomWidget>
                 ),
                 _buildControl(),
                 _buildVolume(),
-                _buildScaleModeRadioGroup()
+                _buildScaleModeRadioGroup(),
+                _buildPlaybackRate()
               ],
             )
           ],
@@ -203,6 +212,59 @@ class _MyAppState extends State<YoutubeCustomWidget>
         ),
         new Text(
           'Mute',
+          style: TextStyle(color: Colors.blue),
+        )
+      ],
+    );
+  }
+
+  Widget _buildPlaybackRate() {
+    return new Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        new Radio(
+          value: PlaybackRate.RATE_0_25,
+          groupValue: _playbackRate,
+          onChanged: _changePlaybackRate,
+        ),
+        new Text(
+          '0_25',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: PlaybackRate.RATE_0_5,
+          groupValue: _playbackRate,
+          onChanged: _changePlaybackRate,
+        ),
+        new Text(
+          '0_5',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: PlaybackRate.RATE_1,
+          groupValue: _playbackRate,
+          onChanged: _changePlaybackRate,
+        ),
+        new Text(
+          '1',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: PlaybackRate.RATE_1_5,
+          groupValue: _playbackRate,
+          onChanged: _changePlaybackRate,
+        ),
+        new Text(
+          '1_5',
+          style: TextStyle(color: Colors.blue),
+        ),
+        new Radio(
+          value: PlaybackRate.RATE_2,
+          groupValue: _playbackRate,
+          onChanged: _changePlaybackRate,
+        ),
+        new Text(
+          '2',
           style: TextStyle(color: Colors.blue),
         )
       ],
