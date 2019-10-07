@@ -4,9 +4,12 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.View
+import android.webkit.WebView
 import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
@@ -39,6 +42,7 @@ class FlutterYoutubeView(
     private val methodChannel: MethodChannel
     private val registrarActivityHashCode: Int
     private var disposed = false
+    private val mainThreadHandler: Handler = Handler(Looper.getMainLooper())
 
     init {
         val mode = params["scale_mode"] as? Int ?: 0
@@ -144,6 +148,11 @@ class FlutterYoutubeView(
             }
             "scaleMode" -> {
                 changeScaleMode(methodCall.arguments as Int)
+                result.success(null)
+            }
+            "setPlaybackRate" -> {
+                val rate = (methodCall.arguments as Double).toFloat()
+                runJavascript("javascript:setPlaybackRate($rate)")
                 result.success(null)
             }
             else -> result.notImplemented()
@@ -295,5 +304,12 @@ class FlutterYoutubeView(
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {
+    }
+
+    private fun runJavascript(javascript: String) {
+        if (youtubePlayer is WebView) {
+            val webView = youtubePlayer as WebView
+            mainThreadHandler.post { webView.loadUrl(javascript) }
+        }
     }
 }

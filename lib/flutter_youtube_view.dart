@@ -12,6 +12,8 @@ typedef void FlutterYoutubeViewCreatedCallback(FlutterYoutubeViewController cont
 
 enum YoutubeScaleMode { none, fitWidth, fitHeight }
 
+enum PlaybackRate { RATE_0_25, RATE_0_5, RATE_1, RATE_1_5, RATE_2 }
+
 class FlutterYoutubeView extends StatefulWidget {
   const FlutterYoutubeView({
     Key key,
