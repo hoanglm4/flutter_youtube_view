@@ -12,7 +12,11 @@ class FlutterYoutubeViewPlugin(registrar: Registrar): Application.ActivityLifecy
     private val registrarActivityHashCode: Int
 
     init {
-        registrarActivityHashCode = registrar.activity().hashCode()
+        if (registrar.activity() != null) {
+            registrarActivityHashCode = registrar.activity().hashCode()
+        } else {
+            registrarActivityHashCode = 0
+        }
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
