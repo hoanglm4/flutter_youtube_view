@@ -69,7 +69,9 @@ class FlutterYoutubeViewPlugin(registrar: Registrar): Application.ActivityLifecy
         @JvmStatic
         fun registerWith(registrar: Registrar) {
             val plugin = FlutterYoutubeViewPlugin(registrar)
-            registrar.activity().application.registerActivityLifecycleCallbacks(plugin)
+            if (registrar.activity() != null) {
+                registrar.activity().application.registerActivityLifecycleCallbacks(plugin)
+            }
             registrar
                 .platformViewRegistry()
                 .registerViewFactory(
