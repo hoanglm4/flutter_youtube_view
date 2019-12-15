@@ -53,29 +53,26 @@ class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
   }
 
   Widget _buildVideo() {
+    final creationParams = {
+      "scale_mode": widget.scaleMode.index,
+      "videoId": widget.params.videoId,
+      "showUI": widget.params.showUI,
+      "startSeconds": widget.params.startSeconds,
+      "autoPlay": widget.params.autoPlay,
+    };
+
     if (defaultTargetPlatform == TargetPlatform.android) {
       return AndroidView(
         viewType: 'plugins.hoanglm.com/youtube',
         onPlatformViewCreated: _onPlatformViewCreated,
-        creationParams: <String, dynamic>{
-          "scale_mode": widget.scaleMode.index,
-          "videoId": widget.params.videoId,
-          "showUI": widget.params.showUI,
-          "startSeconds": widget.params.startSeconds,
-          "autoPlay": widget.params.autoPlay,
-        },
+        creationParams: creationParams,
         creationParamsCodec: StandardMessageCodec(),
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return UiKitView(
         viewType: 'plugins.hoanglm.com/youtube',
         onPlatformViewCreated: _onPlatformViewCreated,
-        creationParams: <String, dynamic>{
-          "videoId": widget.params.videoId,
-          "showUI": widget.params.showUI,
-          "startSeconds": widget.params.startSeconds,
-          "autoPlay": widget.params.autoPlay,
-        },
+        creationParams: creationParams,
         creationParamsCodec: StandardMessageCodec(),
       );
     }
