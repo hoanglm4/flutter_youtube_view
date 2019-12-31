@@ -12,26 +12,26 @@ import android.view.View
 import android.webkit.WebView
 import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.platform.PlatformView
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import java.util.concurrent.atomic.AtomicReference
 
 class FlutterYoutubeView(
-    private val context: Context,
-    id: Int,
-    private val params: HashMap<String, *>,
-    private val state: AtomicReference<Lifecycle.Event>,
-    private val registrar: PluginRegistry.Registrar
+        private val context: Context,
+        id: Int,
+        private val params: HashMap<String, *>,
+        private val state: AtomicReference<Lifecycle.Event>,
+        private val registrar: PluginRegistry.Registrar
 ) :
-    PlatformView,
-    MethodChannel.MethodCallHandler,
-    Application.ActivityLifecycleCallbacks {
+        PlatformView,
+        MethodChannel.MethodCallHandler,
+        Application.ActivityLifecycleCallbacks {
 
     private val TAG = "FlutterYoutubeView"
 
@@ -63,15 +63,15 @@ class FlutterYoutubeView(
         container.apply {
             youtubePlayerView = YouTubePlayerView(context)
             val layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
             )
             addView(youtubePlayerView, layoutParams)
         }
         return FrameLayout(context).apply {
             val layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
             )
             layoutParams.gravity = Gravity.CENTER
             addView(container, layoutParams)
@@ -84,11 +84,20 @@ class FlutterYoutubeView(
         val startSeconds = (params[Options.START_SECOND.value] as Double).toFloat()
         val showUI = params[Options.SHOW_UI.value] as Boolean
         val autoPlay = params[Options.AUTO_PLAY.value] as? Boolean ?: true
+        val showYoutubeButton = params[Options.SHOW_YOUTUBE_BUTTON.value] as? Boolean ?: true
+        val showFullScreenButton = params[Options.SHOW_FULL_SCREEN_BUTTON.value] as? Boolean ?: true
         val controller = youtubePlayerView.getPlayerUiController()
         if (!showUI) {
             controller.showUi(false)
             controller.showVideoTitle(false)
             controller.showYouTubeButton(false)
+        } else {
+            if (!showYoutubeButton) {
+                controller.showYouTubeButton(false)
+            }
+            if (!showFullScreenButton) {
+                controller.showFullscreenButton(false)
+            }
         }
         youtubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
@@ -100,8 +109,8 @@ class FlutterYoutubeView(
             }
 
             override fun onStateChange(
-                youTubePlayer: YouTubePlayer,
-                state: PlayerConstants.PlayerState
+                    youTubePlayer: YouTubePlayer,
+                    state: PlayerConstants.PlayerState
             ) {
                 onStateChange(state)
             }
