@@ -52,9 +52,7 @@ class _MyAppState extends State<YoutubeDefaultWidget>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Default UI')
-        ),
+        appBar: AppBar(title: const Text('Default UI')),
         body: Stack(
           children: <Widget>[
             Container(
@@ -62,22 +60,26 @@ class _MyAppState extends State<YoutubeDefaultWidget>
               onViewCreated: _onYoutubeCreated,
               listener: this,
               params: YoutubeParam(
-                  videoId: 'gcj2RUWQZ60', showUI: true, startSeconds: 5 * 60.0),
+                videoId: 'gcj2RUWQZ60',
+                showUI: true,
+                startSeconds: 5 * 60.0,
+                showYoutube: false,
+                showFullScreen: false,
+              ),
             )),
             Center(
                 child: Column(
-                  children: <Widget>[
-                    Text(
-                      'Current state: $_playerState',
-                      style: TextStyle(color: Colors.blue),
-                    ),
-                    RaisedButton(
-                      onPressed: _loadOrCueVideo,
-                      child: Text('Click reload video'),
-                    ),
-                  ],
-                )
-            )
+              children: <Widget>[
+                Text(
+                  'Current state: $_playerState',
+                  style: TextStyle(color: Colors.blue),
+                ),
+                RaisedButton(
+                  onPressed: _loadOrCueVideo,
+                  child: Text('Click reload video'),
+                ),
+              ],
+            ))
           ],
         ));
   }

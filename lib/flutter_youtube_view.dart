@@ -8,20 +8,21 @@ export 'src/you_tube_player_listener.dart';
 export 'src/youtube_param.dart';
 export 'src/flutter_youtube_view_controller.dart';
 
-typedef void FlutterYoutubeViewCreatedCallback(FlutterYoutubeViewController controller);
+typedef void FlutterYoutubeViewCreatedCallback(
+    FlutterYoutubeViewController controller);
 
 enum YoutubeScaleMode { none, fitWidth, fitHeight }
 
 enum PlaybackRate { RATE_0_25, RATE_0_5, RATE_1, RATE_1_5, RATE_2 }
 
 class FlutterYoutubeView extends StatefulWidget {
-  const FlutterYoutubeView({
-    Key key,
-    this.onViewCreated,
-    this.listener,
-    this.scaleMode = YoutubeScaleMode.none,
-    this.params = const YoutubeParam()
-  }) : super(key: key);
+  const FlutterYoutubeView(
+      {Key key,
+      this.onViewCreated,
+      this.listener,
+      this.scaleMode = YoutubeScaleMode.none,
+      this.params = const YoutubeParam()})
+      : super(key: key);
 
   final FlutterYoutubeViewCreatedCallback onViewCreated;
   final YouTubePlayerListener listener;
@@ -63,6 +64,8 @@ class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
           "showUI": widget.params.showUI,
           "startSeconds": widget.params.startSeconds,
           "autoPlay": widget.params.autoPlay,
+          "showYoutube": widget.params.showYoutube,
+          "showFullScreen": widget.params.showFullScreen,
         },
         creationParamsCodec: StandardMessageCodec(),
       );
