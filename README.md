@@ -16,7 +16,7 @@ Add this to you package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  flutter_youtube_view: ^1.1.7
+  flutter_youtube_view: ^1.1.8
 ```
 
 #### 2\. Install

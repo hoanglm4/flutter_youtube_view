@@ -1,7 +1,6 @@
 name: flutter_youtube_view
 description: A new Flutter plugin.
-version: 1.1.7
-author: HoangLM <minhhoangtoday@gmail.com>
+version: 1.1.8
 homepage: https://github.com/hoanglm4/flutter_youtube
 
 environment:

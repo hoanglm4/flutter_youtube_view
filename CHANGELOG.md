@@ -1,3 +1,5 @@
+## 1.1.8
+Migrate SWIFT 5, androidX
 ## 1.1.7
 Bug fix: App is crashed when start in background
 
