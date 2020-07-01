@@ -62,7 +62,7 @@ Currently apps need to opt-in for the UIViews embedding preview on iOS by adding
 - setVolume() only Android
 - mute()
 - unMute()
-- setPlaybackRate(PlaybackRate rate)
+- setPlaybackRate(rate: PlaybackRate.RATE_1) or setPlaybackRate(rateValue: 1.0) 
 ### PLAYER callback
 ```dart
   void onReady();
