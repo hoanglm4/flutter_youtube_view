@@ -149,6 +149,12 @@ class FlutterYoutubeView: NSObject, FlutterPlatformView {
             ]
         }
         self.player = YTSwiftyPlayer(playerVars: playerVars)
+        
+        if (!showUI) {
+            // disable user iteraction if not showing UI
+            self.player.scrollView.subviews.forEach { $0.isUserInteractionEnabled = false }
+        }
+        
         self.player.autoplay = autoPlay
         self.playerView.addSubview(self.player)
         switch scaleMode {
