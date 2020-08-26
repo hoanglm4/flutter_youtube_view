@@ -42,8 +42,9 @@ class FlutterYoutubeViewController {
     await _channel.invokeMethod('seekTo', time);
   }
 
-  Future<void> setPlaybackRate(PlaybackRate rate) async {
-    double rateValue;
+  /// Change player PlaybackRate based on [PlaybackRate] or [rateValue]. If both params, [PlaybackRate] will be used.
+  Future<void> setPlaybackRate({PlaybackRate rate, double rateValue = 1.0}) async {
+    assert(rate != null || rateValue != null);
     switch (rate) {
       case(PlaybackRate.RATE_0_25):
         rateValue = 0.25;
@@ -61,7 +62,7 @@ class FlutterYoutubeViewController {
         rateValue = 2.0;
         break;
       default:
-        rateValue = 1.0;
+        rateValue = rateValue;
         break;
     }
     await _channel.invokeMethod('setPlaybackRate', rateValue);
