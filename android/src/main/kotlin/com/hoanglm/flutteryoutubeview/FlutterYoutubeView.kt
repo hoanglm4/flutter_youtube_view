@@ -1,9 +1,6 @@
 package com.hoanglm.flutteryoutubeview
 
-import android.app.Activity
-import android.app.Application
 import android.content.Context
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -16,23 +13,27 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstan
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.platform.PlatformView
-import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 
 class FlutterYoutubeView(
         private val context: Context,
         id: Int,
         private val params: HashMap<String, *>,
-        private val state: AtomicReference<Lifecycle.Event>,
-        private val registrar: PluginRegistry.Registrar
+        private val binaryMessenger: BinaryMessenger,
+        private val lifecycleChannel: Channel<Lifecycle.Event>
 ) :
         PlatformView,
-        MethodChannel.MethodCallHandler,
-        Application.ActivityLifecycleCallbacks {
+        MethodChannel.MethodCallHandler {
 
+    private var lastLifecycle: Lifecycle.Event = Lifecycle.Event.ON_CREATE
+    private var job: Job? = null
     private val TAG = "FlutterYoutubeView"
 
     private lateinit var youtubePlayerView: YouTubePlayerView
@@ -40,7 +41,6 @@ class FlutterYoutubeView(
     private val view: FrameLayout
     private var youtubePlayer: YouTubePlayer? = null
     private val methodChannel: MethodChannel
-    private val registrarActivityHashCode: Int
     private var disposed = false
     private val mainThreadHandler: Handler = Handler(Looper.getMainLooper())
 
@@ -48,10 +48,8 @@ class FlutterYoutubeView(
         val mode = params["scale_mode"] as? Int ?: 0
         view = createView(mode = mode)
         changeScaleMode(mode = mode)
-        methodChannel = MethodChannel(registrar.messenger(), "plugins.hoanglm.com/youtube_$id")
+        methodChannel = MethodChannel(binaryMessenger, "plugins.hoanglm.com/youtube_$id")
         methodChannel.setMethodCallHandler(this)
-        registrarActivityHashCode = registrar.activity().hashCode()
-        registrar.activity().application.registerActivityLifecycleCallbacks(this)
         initYouTubePlayerView()
     }
 
@@ -127,6 +125,16 @@ class FlutterYoutubeView(
                 methodChannel.invokeMethod("onCurrentSecond", second)
             }
         })
+
+        // runs until channel is closed
+        job = GlobalScope.launch {
+            for (lifecycle in lifecycleChannel) {
+                lastLifecycle = lifecycle
+                if (lifecycle == Lifecycle.Event.ON_PAUSE) {
+                    youtubePlayer?.pause()
+                }
+            }
+        }
     }
 
     override fun getView(): View {
@@ -136,7 +144,7 @@ class FlutterYoutubeView(
     override fun dispose() {
         disposed = true
         youtubePlayerView.release()
-        registrar.activity().application.unregisterActivityLifecycleCallbacks(this)
+        job?.cancel();
     }
 
     override fun onMethodCall(methodCall: MethodCall, result: MethodChannel.Result) {
@@ -178,7 +186,7 @@ class FlutterYoutubeView(
     }
 
     private fun loadOrCueVideo(videoId: String, startSeconds: Float, autoPlay: Boolean = true) {
-        val canLoad = state.get() == Lifecycle.Event.ON_RESUME && autoPlay
+        val canLoad = lastLifecycle == Lifecycle.Event.ON_RESUME && autoPlay
         if (canLoad)
             youtubePlayer?.loadVideo(videoId, startSeconds)
         else
@@ -271,48 +279,6 @@ class FlutterYoutubeView(
             else -> PlayerError.UNKNOWN.value
         }
         methodChannel.invokeMethod("onError", customError)
-    }
-
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        if (activity.hashCode() != registrarActivityHashCode && disposed) {
-            return
-        }
-
-    }
-
-    override fun onActivityStarted(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode && disposed) {
-            return
-        }
-    }
-
-    override fun onActivityResumed(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode && disposed) {
-            return
-        }
-    }
-
-    override fun onActivityPaused(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode && disposed) {
-            return
-        }
-        youtubePlayer?.pause()
-    }
-
-
-    override fun onActivityStopped(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode && disposed) {
-            return
-        }
-    }
-
-    override fun onActivityDestroyed(activity: Activity) {
-        if (activity.hashCode() != registrarActivityHashCode && disposed) {
-            return
-        }
-    }
-
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {
     }
 
     private fun runJavascript(javascript: String) {
