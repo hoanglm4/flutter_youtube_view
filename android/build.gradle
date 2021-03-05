@@ -2,7 +2,7 @@ group 'com.hoanglm.flutteryoutubeview'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.3.20'
+    ext.kotlin_version = '1.4.21'
     repositories {
         google()
         jcenter()
@@ -42,4 +42,5 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.pierfrancescosoffritti.androidyoutubeplayer:core:10.0.3'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2"
 }
