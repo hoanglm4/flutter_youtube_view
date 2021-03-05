@@ -18,8 +18,11 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class FlutterYoutubeView(
@@ -27,7 +30,7 @@ class FlutterYoutubeView(
         id: Int,
         private val params: HashMap<String, *>,
         private val binaryMessenger: BinaryMessenger,
-        private val lifecycleChannel: Channel<Lifecycle.Event>
+        private val lifecycleChannel: StateFlow<Lifecycle.Event>
 ) :
         PlatformView,
         MethodChannel.MethodCallHandler {
@@ -128,9 +131,9 @@ class FlutterYoutubeView(
 
         // runs until channel is closed
         job = GlobalScope.launch {
-            for (lifecycle in lifecycleChannel) {
-                lastLifecycle = lifecycle
-                if (lifecycle == Lifecycle.Event.ON_PAUSE) {
+            lifecycleChannel.collect{
+                lastLifecycle = it
+                if (it == Lifecycle.Event.ON_PAUSE) {
                     youtubePlayer?.pause()
                 }
             }

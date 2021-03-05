@@ -1,3 +1,6 @@
+## 1.1.10
+https://github.com/hoanglm4/flutter_youtube_view/issues/60
+https://github.com/hoanglm4/flutter_youtube_view/issues/57
 ## 1.1.9
 Change ios Deployment Target to 9.0
 

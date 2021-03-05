@@ -5,6 +5,7 @@ homepage: https://github.com/hoanglm4/flutter_youtube
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
+  flutter: ">=1.12.0"
 
 dependencies:
   flutter:
@@ -20,8 +21,12 @@ flutter:
   # be modified. They are used by the tooling to maintain consistency when
   # adding or updating assets for this project.
   plugin:
-    androidPackage: com.hoanglm.flutteryoutubeview
-    pluginClass: FlutterYoutubeViewPlugin
+    platforms:
+      android:
+        package: com.hoanglm.flutteryoutubeview
+        pluginClass: FlutterYoutubeViewPlugin
+      ios:
+        pluginClass: FlutterYoutubeViewPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
