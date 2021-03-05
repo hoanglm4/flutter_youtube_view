@@ -112,7 +112,7 @@ class _MyAppState extends State<YoutubeCustomWidget>
                       videoId: 'gcj2RUWQZ60',
                       showUI: false,
                       startSeconds: 0.0,
-                      autoPlay: false,
+                      autoPlay: true,
                   ),
                 )),
             Column(

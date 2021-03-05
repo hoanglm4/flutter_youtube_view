@@ -11,12 +11,14 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.PluginRegistry
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 
 class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.ActivityLifecycleCallbacks {
     private var activityBinding: ActivityPluginBinding? = null
-    private val lifecycleChannel = Channel<Lifecycle.Event>()
+    private val lifecycleChannel = MutableStateFlow(Lifecycle.Event.ON_CREATE)
     private var registrarActivityHashCode: Int? = null
 
     // post 1.12 android projects
@@ -29,27 +31,26 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         // do nothing
-        activityBinding?.activity?.application?.unregisterActivityLifecycleCallbacks(this)
     }
 
     // This call will be followed by onReattachedToActivityForConfigChanges().
     override fun onDetachedFromActivity() {
+        activityBinding?.activity?.application?.unregisterActivityLifecycleCallbacks(this)
         activityBinding = null
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+            onAttachedToActivity(binding)
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activityBinding = binding
         registrarActivityHashCode = binding.activity.hashCode()
         binding.activity.application.registerActivityLifecycleCallbacks(this)
     }
 
-    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        registrarActivityHashCode = binding.activity.hashCode()
-        binding.activity.application.registerActivityLifecycleCallbacks(this)
-    }
-
     override fun onDetachedFromActivityForConfigChanges() {
-        activityBinding?.activity?.application?.unregisterActivityLifecycleCallbacks(this)
+        onDetachedFromActivity()
     }
 
     // pre-1.12 
@@ -89,7 +90,7 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
             return
         }
         GlobalScope.launch {
-            lifecycleChannel.send(Lifecycle.Event.ON_CREATE)
+            lifecycleChannel.value = Lifecycle.Event.ON_CREATE
         }
     }
 
@@ -98,7 +99,7 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
             return
         }
         GlobalScope.launch {
-            lifecycleChannel.send(Lifecycle.Event.ON_START)
+            lifecycleChannel.value = Lifecycle.Event.ON_START
         }
     }
 
@@ -107,7 +108,7 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
             return
         }
         GlobalScope.launch {
-            lifecycleChannel.send(Lifecycle.Event.ON_RESUME)
+            lifecycleChannel.value = Lifecycle.Event.ON_RESUME
         }
     }
 
@@ -116,7 +117,7 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
             return
         }
         GlobalScope.launch {
-            lifecycleChannel.send(Lifecycle.Event.ON_PAUSE)
+            lifecycleChannel.value = Lifecycle.Event.ON_PAUSE
         }
     }
 
@@ -126,7 +127,7 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
             return
         }
         GlobalScope.launch {
-            lifecycleChannel.send(Lifecycle.Event.ON_STOP)
+            lifecycleChannel.value = Lifecycle.Event.ON_STOP
         }
     }
 
@@ -135,10 +136,10 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
             return
         }
         GlobalScope.launch {
-            lifecycleChannel.send(Lifecycle.Event.ON_DESTROY)
+            lifecycleChannel.value = Lifecycle.Event.ON_DESTROY
         }
     }
 
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {
-    }
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle?) {}
+
 }

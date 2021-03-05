@@ -7,10 +7,11 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.StateFlow
 
 class YoutubeFactory(
         private val binaryMessenger: BinaryMessenger,
-        private val lifecycleChannel: Channel<Lifecycle.Event>
+        private val lifecycleChannel: StateFlow<Lifecycle.Event>
 ) :
     PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
