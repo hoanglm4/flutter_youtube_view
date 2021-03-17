@@ -4,9 +4,9 @@ import '../flutter_youtube_view.dart';
 
 class FlutterYoutubeViewController {
   final MethodChannel _channel;
-  final YouTubePlayerListener _listener;
+  final YouTubePlayerListener? _listener;
 
-  FlutterYoutubeViewController.of(int id, YouTubePlayerListener listener)
+  FlutterYoutubeViewController.of(int id, YouTubePlayerListener? listener)
       : _channel = new MethodChannel('plugins.hoanglm.com/youtube_$id'),
         _listener = listener {
     if (_listener != null) {
@@ -43,8 +43,7 @@ class FlutterYoutubeViewController {
   }
 
   /// Change player PlaybackRate based on [PlaybackRate] or [rateValue]. If both params, [PlaybackRate] will be used.
-  Future<void> setPlaybackRate({PlaybackRate rate, double rateValue = 1.0}) async {
-    assert(rate != null || rateValue != null);
+  Future<void> setPlaybackRate({required PlaybackRate rate, double rateValue = 1.0}) async {
     switch (rate) {
       case(PlaybackRate.RATE_0_25):
         rateValue = 0.25;
@@ -87,19 +86,19 @@ class FlutterYoutubeViewController {
   Future<dynamic> handleEvent(MethodCall call) async {
     switch (call.method) {
       case 'onReady':
-        _listener.onReady();
+        _listener!.onReady();
         break;
       case 'onStateChange':
-        _listener.onStateChange(call.arguments as String);
+        _listener!.onStateChange(call.arguments as String);
         break;
       case 'onError':
-        _listener.onError(call.arguments as String);
+        _listener!.onError(call.arguments as String);
         break;
       case 'onVideoDuration':
-        _listener.onVideoDuration(call.arguments as double);
+        _listener!.onVideoDuration(call.arguments as double);
         break;
       case 'onCurrentSecond':
-        _listener.onCurrentSecond(call.arguments as double);
+        _listener!.onCurrentSecond(call.arguments as double);
         break;
     }
     return null;

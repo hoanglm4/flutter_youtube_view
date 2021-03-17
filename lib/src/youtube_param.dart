@@ -7,7 +7,7 @@ class YoutubeParam {
   final bool showFullScreen;
 
   const YoutubeParam(
-      {this.videoId,
+      {required this.videoId,
       this.showUI = true,
       this.startSeconds = 0.0,
       this.autoPlay = true,
