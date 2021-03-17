@@ -8,24 +8,23 @@ export 'src/you_tube_player_listener.dart';
 export 'src/youtube_param.dart';
 export 'src/flutter_youtube_view_controller.dart';
 
-typedef void FlutterYoutubeViewCreatedCallback(
-    FlutterYoutubeViewController controller);
+typedef void FlutterYoutubeViewCreatedCallback(FlutterYoutubeViewController controller);
 
 enum YoutubeScaleMode { none, fitWidth, fitHeight }
 
 enum PlaybackRate { RATE_0_25, RATE_0_5, RATE_1, RATE_1_5, RATE_2 }
 
 class FlutterYoutubeView extends StatefulWidget {
-  const FlutterYoutubeView(
-      {Key key,
-      this.onViewCreated,
-      this.listener,
-      this.scaleMode = YoutubeScaleMode.none,
-      this.params = const YoutubeParam()})
+  const FlutterYoutubeView({Key? key,
+    required this.params,
+    this.onViewCreated,
+    this.listener,
+    this.scaleMode = YoutubeScaleMode.none,
+  })
       : super(key: key);
 
-  final FlutterYoutubeViewCreatedCallback onViewCreated;
-  final YouTubePlayerListener listener;
+  final FlutterYoutubeViewCreatedCallback? onViewCreated;
+  final YouTubePlayerListener? listener;
   final YoutubeParam params;
   final YoutubeScaleMode scaleMode;
 
@@ -34,7 +33,7 @@ class FlutterYoutubeView extends StatefulWidget {
 }
 
 class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
-  FlutterYoutubeViewController _controller;
+  late FlutterYoutubeViewController _controller;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +43,7 @@ class _FlutterYoutubeViewState extends State<FlutterYoutubeView> {
   void _onPlatformViewCreated(int id) {
     _controller = new FlutterYoutubeViewController.of(id, widget.listener);
     if (widget.onViewCreated != null) {
-      widget.onViewCreated(_controller);
+      widget.onViewCreated!(_controller);
     }
     _initialization();
   }
