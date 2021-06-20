@@ -131,7 +131,7 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
         }
     }
 
-    override fun onActivitySaveInstanceState(activity: Activity?, outState: Bundle?) {
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
         TODO("Not yet implemented")
     }
 
