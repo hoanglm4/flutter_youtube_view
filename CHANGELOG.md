@@ -1,3 +1,7 @@
+## 2.0.2
+Update android plugin
+## 2.0.1
+https://github.com/hoanglm4/flutter_youtube_view/issues/68
 ## 2.0.0
 https://github.com/hoanglm4/flutter_youtube_view/issues/64
 ## 1.1.10
