@@ -74,7 +74,7 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
             val plugin = FlutterYoutubeViewPlugin()
             // register activity lifecycle requirements
             plugin.registrarActivityHashCode = registrar.activity().hashCode()
-            registrar.activity().application.registerActivityLifecycleCallbacks(plugin)
+            registrar.activity()?.application?.registerActivityLifecycleCallbacks(plugin)
             // create the youtube view
             registrar
                     .platformViewRegistry()
