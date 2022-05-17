@@ -53,4 +53,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.pierfrancescosoffritti.androidyoutubeplayer:core:11.0.1'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1"
+    // Used to have any kind of ide support
+    // See here for reference: https://github.com/flutter/flutter/issues/19830
+    //implementation files('/Users/jayjah/.asdf/installs/flutter/3.0.0-stable/bin/cache/artifacts/engine/android-x64/flutter.jar')
 }

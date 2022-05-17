@@ -2,7 +2,6 @@ package com.hoanglm.flutteryoutubeview
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.FrameLayout
 
 class FLTPlayerView : FrameLayout {
@@ -31,16 +30,16 @@ class FLTPlayerView : FrameLayout {
                 return Pair(widthMeasureSpec, heightMeasureSpec)
             }
             VideoScaleMode.FIT_WIDTH -> {
-                val sixteenNineHeight = View.MeasureSpec.makeMeasureSpec(
-                    (View.MeasureSpec.getSize(widthMeasureSpec) / Constans.VIDEO_RATIO).toInt(),
-                    View.MeasureSpec.EXACTLY
+                val sixteenNineHeight = MeasureSpec.makeMeasureSpec(
+                    (MeasureSpec.getSize(widthMeasureSpec) / Constans.VIDEO_RATIO).toInt(),
+                    MeasureSpec.EXACTLY
                 )
                 return Pair(widthMeasureSpec, sixteenNineHeight)
             }
             VideoScaleMode.FIT_HEIGHT -> {
-                val sixteenNineWidth = View.MeasureSpec.makeMeasureSpec(
-                    (View.MeasureSpec.getSize(heightMeasureSpec) * Constans.VIDEO_RATIO).toInt(),
-                    View.MeasureSpec.EXACTLY
+                val sixteenNineWidth = MeasureSpec.makeMeasureSpec(
+                    (MeasureSpec.getSize(heightMeasureSpec) * Constans.VIDEO_RATIO).toInt(),
+                    MeasureSpec.EXACTLY
                 )
                 return Pair(sixteenNineWidth, heightMeasureSpec)
             }

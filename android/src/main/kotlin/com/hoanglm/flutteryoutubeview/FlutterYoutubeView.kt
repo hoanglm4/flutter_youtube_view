@@ -13,17 +13,16 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstan
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.ui.DefaultPlayerUiController
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+
 
 class FlutterYoutubeView(
         private val context: Context,
@@ -87,21 +86,25 @@ class FlutterYoutubeView(
         val autoPlay = params[Options.AUTO_PLAY.value] as? Boolean ?: true
         val showYoutubeButton = params[Options.SHOW_YOUTUBE_BUTTON.value] as? Boolean ?: true
         val showFullScreenButton = params[Options.SHOW_FULL_SCREEN_BUTTON.value] as? Boolean ?: true
-        val controller = youtubePlayerView.getPlayerUiController()
-        if (!showUI) {
-            controller.showUi(false)
-            controller.showVideoTitle(false)
-            controller.showYouTubeButton(false)
-        } else {
-            if (!showYoutubeButton) {
-                controller.showYouTubeButton(false)
-            }
-            if (!showFullScreenButton) {
-                controller.showFullscreenButton(false)
-            }
-        }
+
         youtubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
+                val defaultPlayerUiController =
+                    DefaultPlayerUiController(youtubePlayerView, youTubePlayer)
+                youtubePlayerView.setCustomPlayerUi(defaultPlayerUiController.rootView)
+                if (!showUI) {
+                    defaultPlayerUiController.showUi(false)
+                    defaultPlayerUiController.showVideoTitle(false)
+                    defaultPlayerUiController.showYouTubeButton(false)
+                } else {
+                    if (!showYoutubeButton) {
+                        defaultPlayerUiController.showYouTubeButton(false)
+                    }
+                    if (!showFullScreenButton) {
+                        defaultPlayerUiController.showFullscreenButton(false)
+                    }
+                }
+
                 youtubePlayer = youTubePlayer
                 methodChannel.invokeMethod("onReady", null)
                 if (videoId != null) {
