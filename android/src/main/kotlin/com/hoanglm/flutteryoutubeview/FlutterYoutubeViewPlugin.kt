@@ -9,6 +9,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.PluginRegistry
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -74,7 +75,7 @@ class FlutterYoutubeViewPlugin : FlutterPlugin, ActivityAware, Application.Activ
             val plugin = FlutterYoutubeViewPlugin()
             // register activity lifecycle requirements
             plugin.registrarActivityHashCode = registrar.activity().hashCode()
-            registrar.activity().application.registerActivityLifecycleCallbacks(plugin)
+            registrar.activity()?.application?.registerActivityLifecycleCallbacks(plugin)
             // create the youtube view
             registrar
                     .platformViewRegistry()
