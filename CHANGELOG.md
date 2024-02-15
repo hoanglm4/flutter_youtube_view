@@ -1,3 +1,6 @@
+## 2.0.5
+Fixed:
+IOS: "Type 'VideoEmbedParameter' has no member 'showInfo'" error 
 ## 2.0.4
 https://github.com/hoanglm4/flutter_youtube_view/issues/73
 ## 2.0.3
