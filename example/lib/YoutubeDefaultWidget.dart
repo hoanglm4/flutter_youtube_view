@@ -10,7 +10,7 @@ class _MyAppState extends State<YoutubeDefaultWidget>
     implements YouTubePlayerListener {
   double _currentVideoSecond = 0.0;
   String _playerState = "";
-  FlutterYoutubeViewController _controller;
+  late FlutterYoutubeViewController _controller;
 
   @override
   void onCurrentSecond(double second) {
@@ -74,7 +74,7 @@ class _MyAppState extends State<YoutubeDefaultWidget>
                   'Current state: $_playerState',
                   style: TextStyle(color: Colors.blue),
                 ),
-                RaisedButton(
+                TextButton(
                   onPressed: _loadOrCueVideo,
                   child: Text('Click reload video'),
                 ),

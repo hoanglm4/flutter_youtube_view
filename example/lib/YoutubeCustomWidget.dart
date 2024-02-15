@@ -12,14 +12,14 @@ class _MyAppState extends State<YoutubeCustomWidget>
   double _videoDuration = 0.0;
   double _currentVideoSecond = 0.0;
   String _playerState = "";
-  FlutterYoutubeViewController _controller;
+  late FlutterYoutubeViewController _controller;
   YoutubeScaleMode _mode = YoutubeScaleMode.none;
   PlaybackRate _playbackRate = PlaybackRate.RATE_1;
   bool _isMuted = false;
 
   @override
   void onCurrentSecond(double second) {
-   // print("onCurrentSecond second = $second");
+    // print("onCurrentSecond second = $second");
     _currentVideoSecond = second;
   }
 
@@ -70,16 +70,18 @@ class _MyAppState extends State<YoutubeCustomWidget>
     _controller.setVolume(volumePercent);
   }
 
-  void _changeScaleMode(YoutubeScaleMode mode) {
+  void _changeScaleMode(YoutubeScaleMode? mode) {
+    assert(mode != null);
     setState(() {
-        _mode = mode;
-        _controller.changeScaleMode(mode);
+      _mode = mode!;
+      _controller.changeScaleMode(mode);
     });
   }
 
-  void _changeVolumeMode(bool isMuted) {
+  void _changeVolumeMode(bool? isMuted) {
+    assert(isMuted != null);
     setState(() {
-      _isMuted = isMuted;
+      _isMuted = isMuted!;
       if (isMuted) {
         _controller.setMute();
       } else {
@@ -88,9 +90,10 @@ class _MyAppState extends State<YoutubeCustomWidget>
     });
   }
 
-  void _changePlaybackRate(PlaybackRate playbackRate) {
+  void _changePlaybackRate(PlaybackRate? playbackRate) {
+    assert(playbackRate != null);
     setState(() {
-      _playbackRate = playbackRate;
+      _playbackRate = playbackRate!;
       _controller.setPlaybackRate(rate: playbackRate);
     });
   }
@@ -98,30 +101,28 @@ class _MyAppState extends State<YoutubeCustomWidget>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Custom UI')
-        ),
+        appBar: AppBar(title: const Text('Custom UI')),
         body: Stack(
           children: <Widget>[
             Container(
                 child: FlutterYoutubeView(
-                  scaleMode: _mode,
-                  onViewCreated: _onYoutubeCreated,
-                  listener: this,
-                  params: YoutubeParam(
-                      videoId: 'gcj2RUWQZ60',
-                      showUI: false,
-                      startSeconds: 0.0,
-                      autoPlay: true,
-                  ),
-                )),
+              scaleMode: _mode,
+              onViewCreated: _onYoutubeCreated,
+              listener: this,
+              params: YoutubeParam(
+                videoId: 'gcj2RUWQZ60',
+                showUI: false,
+                startSeconds: 0.0,
+                autoPlay: true,
+              ),
+            )),
             Column(
               children: <Widget>[
                 Text(
                   'Current state: $_playerState',
                   style: TextStyle(color: Colors.blue),
                 ),
-                RaisedButton(
+                TextButton(
                   onPressed: _loadOrCueVideo,
                   child: Text('Click reload video'),
                 ),
@@ -139,15 +140,15 @@ class _MyAppState extends State<YoutubeCustomWidget>
     return new Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        RaisedButton(
+        TextButton(
           onPressed: _play,
           child: Text('Play'),
         ),
-        RaisedButton(
+        TextButton(
           onPressed: _pause,
           child: Text('Pause'),
         ),
-        RaisedButton(
+        TextButton(
           onPressed: () {
             _seekTo(20.0);
           },
@@ -271,5 +272,3 @@ class _MyAppState extends State<YoutubeCustomWidget>
     );
   }
 }
-
-
